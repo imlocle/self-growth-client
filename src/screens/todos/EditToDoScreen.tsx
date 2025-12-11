@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TextInput,
   TouchableOpacity,
+  StyleSheet,
+  Alert,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { ToDoStackParamList } from "../../navigation/ToDoStack";
 import { todoService } from "../../features/todos/services/todoService";
-import { Difficulty, DIFFICULTY_OPTIONS, ICreateToDoInput } from "../../domain/models/todo";
+import { Difficulty, DIFFICULTY_OPTIONS, IToDo, IUpdateToDoInput } from "../../domain/models/todo";
 
 import { Screen } from "../../ui/components/Screen";
 import { AppButton } from "../../ui/components/AppButton";
@@ -21,25 +22,39 @@ import { colors } from "../../ui/theme/colors";
 import { spacing } from "../../ui/theme/spacing";
 import { radius } from "../../ui/theme/radius";
 
-type Props = NativeStackScreenProps<ToDoStackParamList, "CreateToDo">;
+type Props = NativeStackScreenProps<ToDoStackParamList, "EditToDo">
 
-export const CreateToDoScreen: React.FC<Props> = ({ navigation }) => {
+export const EditToDoScreen: React.FC<Props> = ({ route, navigation }) => {
   const queryClient = useQueryClient();
+  const todo: IToDo = route.params.todo;
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [date, setDate] = useState<Date | null>(null);
+  const [title, setTitle] = useState(todo.title);
+  const [description, setDescription] = useState(todo.description ?? "");
+  const [date, setDate] = useState<Date | null>(
+    todo.dateDue ? new Date(todo.dateDue) : null
+  );
   const [showPicker, setShowPicker] = useState(false);
 
   const [checklistInput, setChecklistInput] = useState("");
-  const [checklistItems, setChecklistItems] = useState<string[]>([]);
+  const [checklistItems, setChecklistItems] = useState<string[]>(
+    todo.checklist ?? []
+  );
 
-  const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
+  const [difficulty, setDifficulty] = useState<Difficulty | null>(
+    (todo.difficulty as Difficulty) ?? null
+  );
 
-  const createMutation = useMutation({
-    mutationFn: (input: ICreateToDoInput) => todoService.create(input),
+  const updateMutation = useMutation({
+    mutationFn: (input: IUpdateToDoInput) => todoService.update(input),
     onSuccess: () => {
-      // refresh list and go back
+      queryClient.invalidateQueries({ queryKey: ["todos"] });
+      navigation.goBack();
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => todoService.delete(todo.id),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["todos"] });
       navigation.goBack();
     },
@@ -50,21 +65,36 @@ export const CreateToDoScreen: React.FC<Props> = ({ navigation }) => {
   const handleSave = () => {
     if (!title.trim()) return;
 
-    const payload: ICreateToDoInput = {
+    const payload: IUpdateToDoInput = {
+      id: todo.id,
       title: title.trim(),
       description: description.trim() || undefined,
       dateDue,
       checklist: checklistItems.length ? checklistItems : undefined,
       difficulty: difficulty ?? undefined,
-    }
-    createMutation.mutate(payload);
+    };
+
+    updateMutation.mutate(payload);
+  };
+
+  const handleDelete = () => {
+    Alert.alert(
+      "Delete To Do",
+      "Are you sure you want to delete this To Do?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => deleteMutation.mutate(),
+        },
+      ]
+    );
   };
 
   const handleDateChange = (_event: any, selectedDate?: Date) => {
     setShowPicker(false);
-    if (selectedDate) {
-      setDate(selectedDate);
-    }
+    if (selectedDate) setDate(selectedDate);
   };
 
   const handleAddChecklistItem = () => {
@@ -78,15 +108,16 @@ export const CreateToDoScreen: React.FC<Props> = ({ navigation }) => {
     setChecklistItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const isSaveDisabled = !title.trim() || createMutation.isPending;
+  const isSaveDisabled = !title.trim() || updateMutation.isPending;
 
   return (
     <Screen>
+      {/* TITLE */}
       <View style={styles.labelRow}>
         <Text style={styles.label}>Title</Text>
         <Text style={styles.requiredStar}>*</Text>
       </View>
-    
+
       <TextInput
         style={styles.input}
         placeholder="Enter title"
@@ -95,16 +126,19 @@ export const CreateToDoScreen: React.FC<Props> = ({ navigation }) => {
         onChangeText={setTitle}
       />
 
-      <Text style={[styles.label, {marginTop: spacing.lg}]}>Description</Text>
+      {/* DESCRIPTION */}
+      <Text style={[styles.label, { marginTop: spacing.lg }]}>Description</Text>
       <TextInput
         style={[styles.input, styles.multiline]}
-        placeholder="Enter description"
+        placeholder="Enter description (optional)"
         placeholderTextColor={colors.textMuted}
         value={description}
         onChangeText={setDescription}
         multiline
         numberOfLines={4}
       />
+
+      {/* CHECKLIST */}
       <Text style={[styles.label, { marginTop: spacing.lg }]}>
         Checklist
       </Text>
@@ -142,6 +176,7 @@ export const CreateToDoScreen: React.FC<Props> = ({ navigation }) => {
         </View>
       )}
 
+      {/* DIFFICULTY */}
       <Text style={[styles.label, { marginTop: spacing.lg }]}>Difficulty</Text>
       <View style={styles.difficultyRow}>
         {DIFFICULTY_OPTIONS.map((opt) => {
@@ -164,7 +199,7 @@ export const CreateToDoScreen: React.FC<Props> = ({ navigation }) => {
                     key={i}
                     name="star"
                     size={18}
-                    color={selected ? colors.primary : colors.textMuted}
+                    color={selected ? "#22c55e" : colors.textMuted}
                     style={styles.starIcon}
                   />
                 ))}
@@ -182,11 +217,10 @@ export const CreateToDoScreen: React.FC<Props> = ({ navigation }) => {
         })}
       </View>
 
+      {/* DUE DATE */}
       <Text style={[styles.label, { marginTop: spacing.lg }]}>Due Date</Text>
-
       <View style={styles.dateRow}>
         <Text style={styles.dateText}>{dateDue ?? "No date selected"}</Text>
-
         <TouchableOpacity
           style={styles.dateButton}
           onPress={() => setShowPicker(true)}
@@ -204,12 +238,22 @@ export const CreateToDoScreen: React.FC<Props> = ({ navigation }) => {
         />
       )}
 
+      {/* SAVE BUTTON */}
       <AppButton
-        title={createMutation.isPending ? "Saving..." : "Save"}
+        title={updateMutation.isPending ? "Saving..." : "Save Changes"}
         onPress={handleSave}
         disabled={isSaveDisabled}
         style={[styles.saveButton, isSaveDisabled && styles.disabledButton]}
       />
+    <TouchableOpacity
+        style={styles.deleteButton}
+        onPress={handleDelete}
+        disabled={deleteMutation.isPending}
+      >
+        <Text style={styles.deleteButtonText}>
+          {deleteMutation.isPending ? "Deleting..." : "Delete"}
+        </Text>
+      </TouchableOpacity>
     </Screen>
   );
 };
@@ -299,7 +343,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   difficultyItemSelected: {
-    borderColor: colors.primary,
+    borderColor: "#22c55e",
     backgroundColor: "#022c22",
   },
   starsRow: {
@@ -314,7 +358,7 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   difficultyLabelSelected: {
-    color: colors.primary,
+    color: "#22c55e",
     fontWeight: "600",
   },
   dateRow: {
@@ -342,5 +386,16 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.5,
+  },
+  deleteButton: {
+    marginTop: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    alignItems: "center",
+    backgroundColor: "#7f1d1d",
+  },
+  deleteButtonText: {
+    color: "#fecaca",
+    fontWeight: "600",
   },
 });

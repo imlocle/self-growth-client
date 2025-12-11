@@ -4,12 +4,22 @@ export interface IBaseEntity {
   dateModified: string;  // ISO
 }
 
+export type ToDoStatus = "active" | "completed" | "deleted";
+export type Difficulty = "trivial" | "easy" | "medium" | "hard";
+export const DIFFICULTY_OPTIONS: { key: Difficulty; label: string; stars: number }[] = [
+  { key: "trivial", label: "Trivial", stars: 1 },
+  { key: "easy", label: "Easy", stars: 2 },
+  { key: "medium", label: "Medium", stars: 3 },
+  { key: "hard", label: "Hard", stars: 4 },
+];
+
 export interface IToDo extends IBaseEntity {
   title: string;
   checklist?: string[];
-  description?: string;
   dateDue?: string;
-  status?: string;
+  description?: string;
+  difficulty?: string
+  status?: ToDoStatus;
 }
 
 export interface IListToDoOutput {
@@ -21,8 +31,8 @@ export interface ICreateToDoInput {
   title: string;
   checklist?: string[];
   description?: string;
+  difficulty?: string;
   dateDue?: string;
-  status?: string;
 }
 
 export interface IUpdateToDoInput {
@@ -31,5 +41,6 @@ export interface IUpdateToDoInput {
   checklist?: string[];
   description?: string;
   dateDue?: string;
+  difficulty?: string;
   status?: string;
 }

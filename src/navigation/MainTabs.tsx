@@ -2,7 +2,7 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import { ToDoStackNavigator } from "./ToDoStack";
-import { HabitScreen } from "../screens/HabitScreen";
+import { HabitScreen } from "../screens/habits/HabitScreen";
 import { BlogScreen } from "../screens/BlogScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
 import { CustomTabBar } from "./CustomTabBar";

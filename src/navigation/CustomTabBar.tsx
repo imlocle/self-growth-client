@@ -25,6 +25,15 @@ const getIconName = (routeName: string): keyof typeof Ionicons.glyphMap => {
   }
 };
 
+const getFocusedRouteName = (route: any): string => {
+  if (!route.state || !route.state.routes) {
+    return route.name;
+  }
+  const index = route.state.index;
+  const nestedRoute = route.state.routes[index];
+  return nestedRoute.name;
+};
+
 export const CustomTabBar: React.FC<BottomTabBarProps> = ({
   state,
   descriptors,
@@ -49,6 +58,12 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({
   };
 
   const bottomOffset = (insets.bottom || 0) + 8;
+
+  const currentTab = state.routes[state.index];
+  const focusedRoute = getFocusedRouteName(currentTab);
+
+  const hideFabRoutes = ["CreateToDo", "EditToDo"];
+  const shouldShowFab = !hideFabRoutes.includes(focusedRoute);
 
   return (
     <View style={[styles.wrapper, { bottom: bottomOffset }]}>
@@ -106,20 +121,22 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({
       </View>
 
       {/* Center "+" button */}
-      <TouchableOpacity
-        style={[
-          styles.fab,
-          {
-            bottom:
-              (insets.bottom || 0) +
-              (Platform.OS === "ios" ? 24 : 18),
-          },
-        ]}
-        onPress={handleCreatePress}
-        activeOpacity={0.9}
-      >
-        <Ionicons name="add" size={28} color="#022c22" />
-      </TouchableOpacity>
+      {shouldShowFab && (
+        <TouchableOpacity
+          style={[
+            styles.fab,
+            {
+              bottom:
+                (insets.bottom || 0) +
+                (Platform.OS === "ios" ? -10 : -6),
+            },
+          ]}
+          onPress={handleCreatePress}
+          activeOpacity={0.9}
+        >
+          <Ionicons name="add" size={28} color="#022c22" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

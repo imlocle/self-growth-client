@@ -5,27 +5,68 @@ import { IToDo } from "../../../domain/models/todo";
 interface Props {
   todo: IToDo;
   onToggle(): void;
-  onDelete(): void;
+  onDelete(): void; // still in interface if you use it elsewhere, but not used here
+  onPress(): void;
 }
 
-const ToDoItemCard: React.FC<Props> = ({ todo, onToggle, onDelete }) => {
+const ToDoItemCard: React.FC<Props> = ({ todo, onToggle, onPress }) => {
+  const isCompleted = todo.status === "completed"
+  const isDeleted = todo.status === "deleted";
+
   return (
-    <View style={styles.card}>
-      <TouchableOpacity onPress={onToggle} style={styles.row}>
-        <View style={styles.checkbox} />
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.85}
+      disabled={false}
+    >
+      <View
+        style={[
+          styles.card,
+          isCompleted && styles.cardCompleted,
+          isDeleted && styles.cardDeleted,
+        ]}
+      >
+        {/* Checkbox on the left */}
+        <TouchableOpacity
+          onPress={onToggle}
+          style={styles.checkboxContainer}
+          activeOpacity={0.7}
+        >
+          <View
+            style={[
+              styles.checkbox,
+              isCompleted && styles.checkboxCompleted,
+            ]}
+          />
+        </TouchableOpacity>
+
+        {/* Text area - tap here will trigger onPress (because of outer touchable) */}
         <View style={styles.textContainer}>
-          <Text style={styles.title}>
+          <Text
+            style={[
+              styles.title,
+              (isCompleted || isDeleted) && styles.titleCompleted,
+            ]}
+            numberOfLines={2}
+          >
             {todo.title}
           </Text>
-          <Text style={styles.description}>Description: {todo.description || "None"}</Text>
-          <Text style={styles.description}>Due: {todo.dateDue|| "None"}</Text>
-        </View>
-      </TouchableOpacity>
 
-      <TouchableOpacity onPress={onDelete}>
-        <Text style={styles.deleteText}>Delete</Text>
-      </TouchableOpacity>
-    </View>
+          {todo.description ? (
+            <Text
+              style={styles.description}
+              numberOfLines={3}
+            >
+              {todo.description}
+            </Text>
+          ) : null}
+
+          {todo.dateDue ? (
+            <Text style={styles.meta}>{todo.dateDue}</Text>
+          ) : null}
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 };
 
@@ -37,12 +78,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#1f2933",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
   },
-  row: {
-    flexDirection: "row",
-    flex: 1,
-    alignItems: "center",
+  cardCompleted: {
+    backgroundColor: "#111827",
+    opacity: 0.8,
+  },
+  cardDeleted: {
+    backgroundColor: "#020617",
+    opacity: 0.5,
+  },
+  checkboxContainer: {
+    marginRight: 12,
   },
   checkbox: {
     width: 20,
@@ -50,7 +96,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     borderWidth: 2,
     borderColor: "#9ca3af",
-    marginRight: 12,
   },
   checkboxCompleted: {
     backgroundColor: "#10b981",
@@ -58,6 +103,7 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
+    flexShrink: 1,
   },
   title: {
     color: "#f9fafb",
@@ -65,16 +111,16 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   titleCompleted: {
-    textDecorationLine: "line-through",
     color: "#9ca3af",
   },
   description: {
     color: "#d1d5db",
     marginTop: 2,
   },
-  deleteText: {
-    color: "#f97373",
-    marginLeft: 12,
+  meta: {
+    color: "#9ca3af",
+    fontSize: 12,
+    marginTop: 4,
   },
 });
 

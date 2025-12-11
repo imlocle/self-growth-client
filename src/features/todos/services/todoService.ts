@@ -12,19 +12,15 @@ export const todoService = {
     return todoRepository.create(payload);
   },
 
-  async update(todo: IUpdateToDoInput): Promise<IToDo> {
-    return todoRepository.update({
-      id: todo.id,
-      status: todo.status,
-      title: todo.title,
-      description: todo.description
-    });
+  async update(payload: IUpdateToDoInput): Promise<IToDo> {
+    return todoRepository.update(payload);
   },
 
   async toggleComplete(todo: IToDo): Promise<IToDo> {
+    let status = todo.status === "active" ? "completed" : "active"
     return todoRepository.update({
       id: todo.id,
-      status: todo.status,
+      status: status
     });
   },
 
