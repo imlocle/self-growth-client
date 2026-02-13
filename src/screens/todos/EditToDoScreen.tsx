@@ -21,6 +21,7 @@ import { AppButton } from "../../ui/components/AppButton";
 import { colors } from "../../ui/theme/colors";
 import { spacing } from "../../ui/theme/spacing";
 import { radius } from "../../ui/theme/radius";
+import { useAppScope } from "../../scope/AppScopeContext";
 
 type Props = NativeStackScreenProps<ToDoStackParamList, "EditToDo">
 
@@ -43,19 +44,27 @@ export const EditToDoScreen: React.FC<Props> = ({ route, navigation }) => {
   const [difficulty, setDifficulty] = useState<Difficulty | null>(
     (todo.difficulty as Difficulty) ?? null
   );
+  const { activeHouseholdId, activeSubjectId } = useAppScope();
+  const hasScope = !!activeHouseholdId && !!activeSubjectId;
 
   const updateMutation = useMutation({
-    mutationFn: (input: IUpdateToDoInput) => todoService.update(input),
+    mutationFn: (input: IUpdateToDoInput) =>
+      todoService.update(activeHouseholdId!, activeSubjectId!, input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["todos"] });
+      queryClient.invalidateQueries({
+        queryKey: ["todos", activeHouseholdId, activeSubjectId],
+      });
       navigation.goBack();
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => todoService.delete(todo.id),
+    mutationFn: () =>
+      todoService.delete(activeHouseholdId!, activeSubjectId!, todo.id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["todos"] });
+      queryClient.invalidateQueries({
+        queryKey: ["todos", activeHouseholdId, activeSubjectId],
+      });
       navigation.goBack();
     },
   });
@@ -108,7 +117,9 @@ export const EditToDoScreen: React.FC<Props> = ({ route, navigation }) => {
     setChecklistItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const isSaveDisabled = !title.trim() || updateMutation.isPending;
+  const isSaveDisabled = !hasScope || !title.trim() || updateMutation.isPending;
+  const isDeleteDisabled = !hasScope || deleteMutation.isPending;
+
 
   return (
     <Screen>
@@ -246,9 +257,9 @@ export const EditToDoScreen: React.FC<Props> = ({ route, navigation }) => {
         style={[styles.saveButton, isSaveDisabled && styles.disabledButton]}
       />
     <TouchableOpacity
-        style={styles.deleteButton}
+        style={[styles.deleteButton, isDeleteDisabled && styles.disabledButton]}
         onPress={handleDelete}
-        disabled={deleteMutation.isPending}
+        disabled={isDeleteDisabled}
       >
         <Text style={styles.deleteButtonText}>
           {deleteMutation.isPending ? "Deleting..." : "Delete"}

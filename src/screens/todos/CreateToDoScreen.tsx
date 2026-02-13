@@ -20,6 +20,7 @@ import { AppButton } from "../../ui/components/AppButton";
 import { colors } from "../../ui/theme/colors";
 import { spacing } from "../../ui/theme/spacing";
 import { radius } from "../../ui/theme/radius";
+import { useAppScope } from "../../scope/AppScopeContext";
 
 type Props = NativeStackScreenProps<ToDoStackParamList, "CreateToDo">;
 
@@ -36,11 +37,14 @@ export const CreateToDoScreen: React.FC<Props> = ({ navigation }) => {
 
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
 
+  const { activeHouseholdId, activeSubjectId } = useAppScope();
+  const hasScope = !!activeHouseholdId && !!activeSubjectId;
+
   const createMutation = useMutation({
-    mutationFn: (input: ICreateToDoInput) => todoService.create(input),
+    mutationFn: (input: ICreateToDoInput) => todoService.create(activeHouseholdId!, activeSubjectId!, input),
     onSuccess: () => {
       // refresh list and go back
-      queryClient.invalidateQueries({ queryKey: ["todos"] });
+      queryClient.invalidateQueries({ queryKey: ["todos", activeHouseholdId, activeSubjectId] });
       navigation.goBack();
     },
   });
@@ -48,6 +52,7 @@ export const CreateToDoScreen: React.FC<Props> = ({ navigation }) => {
   const dateDue = date ? date.toISOString().split("T")[0] : undefined;
 
   const handleSave = () => {
+    if (!hasScope) return;
     if (!title.trim()) return;
 
     const payload: ICreateToDoInput = {
@@ -78,7 +83,19 @@ export const CreateToDoScreen: React.FC<Props> = ({ navigation }) => {
     setChecklistItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const isSaveDisabled = !title.trim() || createMutation.isPending;
+  const isSaveDisabled =
+    !hasScope || !title.trim() || createMutation.isPending;
+
+  if (!hasScope) {
+    return (
+      <Screen>
+        <Text style={{ color: colors.textMuted }}>
+          No household/subject selected yet.
+        </Text>
+      </Screen>
+    );
+  }
+
 
   return (
     <Screen>

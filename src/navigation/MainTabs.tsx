@@ -3,7 +3,6 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import { ToDoStackNavigator } from "./ToDoStack";
 import { HabitScreen } from "../screens/habits/HabitScreen";
-import { BlogScreen } from "../screens/BlogScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
 import { CustomTabBar } from "./CustomTabBar";
 
@@ -32,7 +31,6 @@ export const MainTabs: React.FC = () => {
         options={{ headerShown: false }} // stack handles its own header
       />
       <Tab.Screen name="Habits" component={HabitScreen} />
-      <Tab.Screen name="Blog" component={BlogScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );

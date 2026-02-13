@@ -26,9 +26,25 @@ export const ToDoScreen: React.FC = () => {
     error,
     toggleComplete,
     deleteTodo,
+    hasScope,
   } = useToDoListController();
 
   const navigation = useNavigation<ToDoNav>();
+
+  if (!hasScope) {
+    return (
+      <Screen>
+        <View style={styles.center}>
+          <Text style={styles.text}>
+            No household/subject selected yet.
+          </Text>
+          <Text style={styles.text}>
+            Create/select one to start tracking To Dos.
+          </Text>
+        </View>
+      </Screen>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -57,7 +73,6 @@ export const ToDoScreen: React.FC = () => {
     <ToDoItemCard
       todo={item}
       onToggle={() => toggleComplete(item)}
-      onDelete={() => deleteTodo(item.id)}
       onPress={() => navigation.navigate("EditToDo", {todo: item})}
       />
   );
