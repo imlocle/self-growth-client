@@ -1,10 +1,9 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { saveTokens, clearTokens, getAccessToken } from "./tokenStorage";
 import * as authApi from "./authApi";
-
-import { useAppScope } from "../scope/AppScopeContext";
-import type { IUserProfile } from "../domain/models/profile";
-import { profileService } from "../features/profile/services/profileService";
+import { useAppScope } from "@scope/AppScopeContext";
+import type { IUserProfile } from "@domain/models/profile";
+import { profileService } from "@features/profile/services/profileService";
 
 type AuthState = {
   isLoading: boolean;

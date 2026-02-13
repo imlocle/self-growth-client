@@ -2,13 +2,13 @@ import React from "react";
 import { View, Text, StyleSheet, FlatList, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { IToDo } from "../../domain/models/todo";
-import { useToDoListController } from "../../features/todos/controllers/useToDoListController";
-import ToDoItemCard from "../../features/todos/components/ToDoItemCard";
-import { Screen } from "../../ui/components/Screen";
-import { colors } from "../../ui/theme/colors";
-import { spacing } from "../../ui/theme/spacing";
-import { ToDoStackParamList } from "../../navigation/ToDoStack";
+import { IToDo } from "@domain/models/todo";
+import { useToDoListController } from "@features/todos/controllers/useToDoListController";
+import ToDoItemCard from "@features/todos/components/ToDoItemCard";
+import { Screen } from "@ui/components/Screen";
+import { colors } from "@ui/theme/colors";
+import { spacing } from "@ui/theme/spacing";
+import { ToDoStackParamList } from "@navigation/ToDoStack";
 
 type ToDoNav = NativeStackNavigationProp<ToDoStackParamList, "ToDoList">;
 

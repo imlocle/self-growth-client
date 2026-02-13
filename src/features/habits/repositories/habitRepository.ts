@@ -1,11 +1,11 @@
-import { apiClient } from "../../../core/network/apiClient";
-import { scopedPath } from "../../../scope/scopePath";
+import { apiClient } from "@core/network/apiClient";
+import { scopedPath } from "@scope/scopePath";
 import {
   IHabit,
   ICreateHabitInput,
   IUpdateHabitInput,
   IListHabitOutput,
-} from "../../../domain/models/habit";
+} from "@domain/models/habit";
 
 /**
  * Habit Repository

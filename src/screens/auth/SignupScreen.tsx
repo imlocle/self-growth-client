@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-import { useAuth } from "../../auth/AuthContext";
-import { colors } from "../../ui/theme/colors";
-import { spacing } from "../../ui/theme/spacing";
-import { radius } from "../../ui/theme/radius";
-import { Screen } from "../../ui/components/Screen";
+import { useAuth } from "@auth/AuthContext";
+import { colors } from "@ui/theme/colors";
+import { spacing } from "@ui/theme/spacing";
+import { radius } from "@ui/theme/radius";
+import { Screen } from "@ui/components/Screen";
 
 export function SignupScreen({ navigation }: any) {
   const { signup } = useAuth();

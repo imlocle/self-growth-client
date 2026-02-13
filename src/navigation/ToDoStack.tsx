@@ -1,10 +1,10 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import { ToDoScreen } from "../screens/todos/ToDoScreen";
-import { CreateToDoScreen } from "../screens/todos/CreateToDoScreen";
-import { EditToDoScreen } from "../screens/todos/EditToDoScreen";
-import { IToDo } from "../domain/models/todo";
+import { ToDoScreen } from "@screens/todos/ToDoScreen";
+import { CreateToDoScreen } from "@screens/todos/CreateToDoScreen";
+import { EditToDoScreen } from "@screens/todos/EditToDoScreen";
+import { IToDo } from "@domain/models/todo";
 
 /**
  * ToDo Stack Navigation Parameter List

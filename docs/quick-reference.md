@@ -1,629 +1,263 @@
 # Quick Reference Guide
 
-## Common Code Patterns
+## Path Aliases
 
-### Making an API Call
+Use these aliases for cleaner imports:
 
 ```typescript
-// 1. Define model
-interface IMyEntity {
-  id: string;
-  name: string;
-}
+// Theme
+import { colors, spacing, radius, typography } from "@ui/theme";
 
-// 2. Create repository
-export const myRepository = {
-  async list(householdId: string, subjectId: string) {
-    const { data } = await apiClient.get(
-      scopedPath(householdId, subjectId, '/my-entities')
-    );
-    return data;
-  }
-};
+// Components
+import { Screen, AppButton } from "@ui/components";
 
-// 3. Create service
-export const myService = {
-  async list(householdId: string, subjectId: string) {
-    return myRepository.list(householdId, subjectId);
-  }
-};
+// Domain Models
+import { IHabit, IToDo, IUserProfile } from "@domain/models";
 
-// 4. Create controller
-export function useMyController() {
-  const { activeHouseholdId, activeSubjectId } = useAppScope();
+// Features
+import { useHabitListController } from "@features/habits/controllers/useHabitListController";
+import { useToDoFormController } from "@features/todos/controllers/useToDoFormController";
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['my-entities', activeHouseholdId, activeSubjectId],
-    queryFn: () => myService.list(activeHouseholdId!, activeSubjectId!),
-    enabled: !!activeHouseholdId && !!activeSubjectId
-  });
+// Navigation
+import { MainTabs, AuthStack } from "@navigation";
 
-  return { items: data ?? [], isLoading };
-}
+// Auth
+import { useAuth, AuthProvider } from "@auth";
 
-// 5. Use in component
-function MyScreen() {
-  const { items, isLoading } = useMyController();
+// Scope
+import { useAppScope, scopedPath } from "@scope";
 
-  if (isLoading) return <LoadingSpinner />;
+// Core
+import { apiClient, ENV } from "@core";
 
-  return (
-    <FlatList
-      data={items}
-      renderItem={({ item }) => <Text>{item.name}</Text>}
-    />
-  );
-}
+// Screens
+import { LoginScreen } from "@screens/auth/LoginScreen";
 ```
 
-### Creating a Form
+## Project Structure
 
-```typescript
-function CreateItemScreen() {
-  const [title, setTitle] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSubmit = async () => {
-    if (!title.trim()) {
-      setError('Title is required');
-      return;
-    }
-
-    setIsLoading(true);
-    setError('');
-
-    try {
-      await myService.create(householdId, subjectId, { title });
-      navigation.goBack();
-    } catch (err: any) {
-      setError(err.message || 'Failed to create');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <Screen>
-      <TextInput
-        label="Title"
-        value={title}
-        onChangeText={setTitle}
-        error={error}
-      />
-      <AppButton
-        title="Save"
-        onPress={handleSubmit}
-        disabled={isLoading}
-      />
-    </Screen>
-  );
-}
+```
+src/
+├── auth/              # Authentication (useAuth, AuthProvider)
+├── core/              # Core utilities (apiClient, ENV)
+├── domain/            # Domain models (IHabit, IToDo, IUserProfile)
+├── features/          # Feature modules
+│   ├── habits/        # Habit tracking
+│   ├── todos/         # To-do management
+│   └── profile/       # User profiles
+├── navigation/        # Navigation stacks
+├── scope/             # Household/subject scoping
+├── screens/           # Screen components
+└── ui/                # UI components and theme
 ```
 
-### Using Mutations
+## Feature Module Pattern
 
-```typescript
-function useMyMutations() {
-  const queryClient = useQueryClient();
-  const { activeHouseholdId, activeSubjectId } = useAppScope();
-
-  const createMutation = useMutation({
-    mutationFn: (data: ICreateInput) =>
-      myService.create(activeHouseholdId!, activeSubjectId!, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["my-entities", activeHouseholdId, activeSubjectId],
-      });
-    },
-  });
-
-  return {
-    create: createMutation.mutate,
-    isCreating: createMutation.isPending,
-  };
-}
+```
+feature/
+├── components/       # UI components (HabitCard, ToDoItemCard)
+├── controllers/      # React hooks (useHabitListController, useHabitFormController)
+├── repositories/     # API layer (habitRepository)
+├── services/         # Business logic (habitService)
+└── index.ts          # Barrel export
 ```
 
-### Navigation
+## Common Commands
+
+```bash
+# Development
+npm start              # Start Expo dev server
+npm run ios            # Run on iOS
+npm run android        # Run on Android
+npx expo start -c      # Clear cache and start
+
+# Type Checking
+npx tsc --noEmit       # Check TypeScript errors
+
+# Installation
+npm install            # Install dependencies
+```
+
+## Code Standards
+
+### Imports
 
 ```typescript
-// Navigate to screen
-navigation.navigate("ScreenName");
+// ✅ Good - Use path aliases
+import { colors } from "@ui/theme/colors";
 
-// Navigate with params
-navigation.navigate("EditItem", { item });
-
-// Go back
-navigation.goBack();
-
-// Replace current screen
-navigation.replace("ScreenName");
-
-// Reset navigation stack
-navigation.reset({
-  index: 0,
-  routes: [{ name: "Home" }],
-});
+// ❌ Bad - Don't use relative imports
+import { colors } from "../../../ui/theme/colors";
 ```
 
 ### Styling
 
 ```typescript
+// ✅ Good - Use theme tokens
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: colors.background,
     padding: spacing.md,
-  },
-  title: {
-    ...typography.heading,
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  button: {
-    backgroundColor: colors.primary,
-    padding: spacing.md,
+    backgroundColor: colors.surface,
     borderRadius: radius.md,
   },
 });
-```
 
-## File Templates
-
-### Repository Template
-
-```typescript
-// src/features/{feature}/repositories/{feature}Repository.ts
-import { apiClient } from "../../../core/network/apiClient";
-import { scopedPath } from "../../../scope/scopePath";
-import {
-  IEntity,
-  ICreateInput,
-  IUpdateInput,
-} from "../../../domain/models/{feature}";
-
-export const entityRepository = {
-  async list(householdId: string, subjectId: string) {
-    const { data } = await apiClient.get(
-      scopedPath(householdId, subjectId, "/entities"),
-    );
-    return data;
-  },
-
-  async get(householdId: string, subjectId: string, id: string) {
-    const { data } = await apiClient.get(
-      scopedPath(householdId, subjectId, `/entities/${id}`),
-    );
-    return data;
-  },
-
-  async create(householdId: string, subjectId: string, payload: ICreateInput) {
-    const { data } = await apiClient.post(
-      scopedPath(householdId, subjectId, "/entities"),
-      payload,
-    );
-    return data;
-  },
-
-  async update(householdId: string, subjectId: string, payload: IUpdateInput) {
-    const { id, ...rest } = payload;
-    const { data } = await apiClient.put(
-      scopedPath(householdId, subjectId, `/entities/${id}`),
-      rest,
-    );
-    return data;
-  },
-
-  async delete(householdId: string, subjectId: string, id: string) {
-    await apiClient.delete(
-      scopedPath(householdId, subjectId, `/entities/${id}`),
-    );
-  },
-};
-```
-
-### Service Template
-
-```typescript
-// src/features/{feature}/services/{feature}Service.ts
-import { entityRepository } from "../repositories/{feature}Repository";
-import {
-  IEntity,
-  ICreateInput,
-  IUpdateInput,
-} from "../../../domain/models/{feature}";
-
-export const entityService = {
-  async list(householdId: string, subjectId: string): Promise<IEntity[]> {
-    const response = await entityRepository.list(householdId, subjectId);
-    return response.items;
-  },
-
-  async create(
-    householdId: string,
-    subjectId: string,
-    payload: ICreateInput,
-  ): Promise<IEntity> {
-    // Add validation here
-    return entityRepository.create(householdId, subjectId, payload);
-  },
-
-  async update(
-    householdId: string,
-    subjectId: string,
-    payload: IUpdateInput,
-  ): Promise<IEntity> {
-    return entityRepository.update(householdId, subjectId, payload);
-  },
-
-  async delete(
-    householdId: string,
-    subjectId: string,
-    id: string,
-  ): Promise<void> {
-    return entityRepository.delete(householdId, subjectId, id);
-  },
-};
-```
-
-### Controller Template
-
-```typescript
-// src/features/{feature}/controllers/use{Feature}Controller.ts
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { entityService } from "../services/{feature}Service";
-import { useAppScope } from "../../../scope/AppScopeContext";
-
-export function useEntityController() {
-  const queryClient = useQueryClient();
-  const { activeHouseholdId, activeSubjectId } = useAppScope();
-
-  const hasScope = !!activeHouseholdId && !!activeSubjectId;
-
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["entities", activeHouseholdId, activeSubjectId],
-    queryFn: () => entityService.list(activeHouseholdId!, activeSubjectId!),
-    enabled: hasScope,
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) =>
-      entityService.delete(activeHouseholdId!, activeSubjectId!, id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["entities", activeHouseholdId, activeSubjectId],
-      });
-    },
-  });
-
-  return {
-    entities: data ?? [],
-    isLoading,
-    error,
-    hasScope,
-    deleteEntity: deleteMutation.mutate,
-    isDeleting: deleteMutation.isPending,
-  };
-}
-```
-
-### Screen Template
-
-```typescript
-// src/screens/{feature}/{Feature}Screen.tsx
-import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { Screen } from '../../ui/components/Screen';
-import { LoadingSpinner } from '../../ui/components/LoadingSpinner';
-import { EmptyState } from '../../ui/components/EmptyState';
-import { ErrorMessage } from '../../ui/components/ErrorMessage';
-import { useEntityController } from '../../features/{feature}/controllers/use{Feature}Controller';
-import { colors } from '../../ui/theme/colors';
-import { spacing } from '../../ui/theme/spacing';
-import { typography } from '../../ui/theme/typography';
-
-export function EntityScreen() {
-  const { entities, isLoading, error, hasScope } = useEntityController();
-
-  if (!hasScope) {
-    return (
-      <Screen>
-        <Text style={styles.message}>No scope selected</Text>
-      </Screen>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <Screen>
-        <LoadingSpinner text="Loading..." />
-      </Screen>
-    );
-  }
-
-  if (error) {
-    return (
-      <Screen>
-        <ErrorMessage message="Failed to load data" />
-      </Screen>
-    );
-  }
-
-  if (entities.length === 0) {
-    return (
-      <Screen>
-        <EmptyState
-          icon="document-outline"
-          title="No Items Yet"
-          message="Create your first item to get started"
-        />
-      </Screen>
-    );
-  }
-
-  return (
-    <Screen>
-      <FlatList
-        data={entities}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.item}>
-            <Text style={styles.itemText}>{item.name}</Text>
-          </View>
-        )}
-      />
-    </Screen>
-  );
-}
-
+// ❌ Bad - Don't hardcode values
 const styles = StyleSheet.create({
-  message: {
-    color: colors.textSoft,
-    textAlign: 'center',
-    marginTop: spacing.xl,
-  },
-  item: {
-    backgroundColor: colors.surface,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
+  container: {
+    padding: 16,
+    backgroundColor: "#1a1a1a",
     borderRadius: 8,
   },
-  itemText: {
-    color: colors.text,
-    fontSize: 16,
-  }
 });
 ```
 
-## Cheat Sheet
+### Documentation
 
-### Import Paths
+````typescript
+/**
+ * Component description
+ *
+ * @param props - Component props
+ * @returns JSX element
+ *
+ * @example
+ * ```typescript
+ * <MyComponent title="Hello" />
+ * ```
+ */
+````
 
-```typescript
-// Theme
-import { colors } from "@/ui/theme/colors";
-import { spacing } from "@/ui/theme/spacing";
-import { typography } from "@/ui/theme/typography";
-import { radius } from "@/ui/theme/radius";
+## Theme Tokens
 
-// Components
-import { Screen } from "@/ui/components/Screen";
-import { AppButton } from "@/ui/components/AppButton";
-
-// Scope
-import { useAppScope } from "@/scope/AppScopeContext";
-import { scopedPath } from "@/scope/scopePath";
-
-// Auth
-import { useAuth } from "@/auth/AuthContext";
-
-// Navigation
-import { useNavigation } from "@react-navigation/native";
-
-// React Query
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-```
-
-### Common Hooks
+### Colors
 
 ```typescript
-// Scope
-const { activeHouseholdId, activeSubjectId, setActiveHousehold } =
-  useAppScope();
-
-// Auth
-const { isAuthed, login, logout } = useAuth();
-
-// Navigation
-const navigation = useNavigation();
-
-// Query
-const { data, isLoading, error, refetch } = useQuery({
-  queryKey: ["key"],
-  queryFn: fetchData,
-});
-
-// Mutation
-const mutation = useMutation({
-  mutationFn: updateData,
-  onSuccess: () => queryClient.invalidateQueries({ queryKey: ["key"] }),
-});
+colors.background; // Main background
+colors.surface; // Card/surface background
+colors.surfaceAlt; // Alternative surface
+colors.primary; // Primary brand color
+colors.text; // Primary text
+colors.textSoft; // Secondary text
+colors.textMuted; // Muted text
+colors.border; // Border color
+colors.danger; // Error/danger color
 ```
 
-### Theme Values
+### Spacing
 
 ```typescript
-// Colors
-colors.background; // #020617
-colors.surface; // #111827
-colors.primary; // #22c55e
-colors.text; // #f9fafb
-colors.textMuted; // #9ca3af
-colors.danger; // #f97373
-
-// Spacing
-spacing.xs; // 4
-spacing.sm; // 8
-spacing.md; // 12
-spacing.lg; // 16
-spacing.xl; // 24
-spacing.xxl; // 32
-
-// Radius
-radius.sm; // 4
-radius.md; // 8
-radius.lg; // 12
-radius.xl; // 16
-radius.full; // 9999
+spacing.xs; // 4px
+spacing.sm; // 8px
+spacing.md; // 16px
+spacing.lg; // 24px
+spacing.xl; // 32px
+spacing.xxl; // 48px
 ```
 
-### TypeScript Types
+### Radius
 
 ```typescript
-// Component Props
-interface Props {
-  title: string;
-  onPress: () => void;
-  disabled?: boolean;
-  style?: StyleProp<ViewStyle>;
-}
-
-// Navigation Types
-type StackParamList = {
-  Home: undefined;
-  Details: { id: string };
-};
-
-type ScreenProps = NativeStackNavigationProp<StackParamList, "Home">;
-
-// API Types
-interface IEntity {
-  id: string;
-  name: string;
-  dateCreated: string;
-  dateModified: string;
-}
-
-interface ICreateInput {
-  name: string;
-}
-
-interface IUpdateInput {
-  id: string;
-  name?: string;
-}
+radius.sm; // 4px
+radius.md; // 8px
+radius.lg; // 12px
+radius.xl; // 16px
+radius.full; // 9999px (circular)
 ```
 
-### Useful Commands
+## Data Flow
 
-```bash
-# Start dev server
-npm start
-
-# Run on iOS
-npm run ios
-
-# Run on Android
-npm run android
-
-# Clear cache
-expo start -c
-
-# Type check
-npx tsc --noEmit
-
-# Install package
-npm install package-name
-
-# Remove package
-npm uninstall package-name
+```
+Screen → Controller → Service → Repository → API
+                ↓
+            React Query Cache
 ```
 
-### Git Commands
+## Scoping
 
-```bash
-# Create branch
-git checkout -b feature/my-feature
-
-# Stage changes
-git add .
-
-# Commit
-git commit -m "feat: Add new feature"
-
-# Push
-git push origin feature/my-feature
-
-# Pull latest
-git pull origin main
-
-# Merge main into branch
-git merge main
-```
-
-### Debugging
+All data requires household and subject IDs:
 
 ```typescript
-// Console logging
-console.log("Value:", value);
-console.error("Error:", error);
-console.warn("Warning:", warning);
+const { activeHouseholdId, activeSubjectId } = useAppScope();
 
-// React Query DevTools
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-
-// Network logging
-apiClient.interceptors.request.use((config) => {
-  console.log("Request:", config.method, config.url);
-  return config;
-});
+// Use in API calls
+const habits = await habitService.list(activeHouseholdId, activeSubjectId);
 ```
 
-## Common Errors and Solutions
+## React Query Keys
 
-### Error: "No scope selected"
+```typescript
+// Habits
+["habits", householdId, subjectId][
+  // Todos
+  ("todos", householdId, subjectId)
+][
+  // Profile
+  ("profile", householdId, subjectId)
+];
+```
 
-**Solution:** Ensure household and subject are set in AppScopeContext
+## Common Patterns
 
-### Error: "Network request failed"
+### Creating a New Feature
 
-**Solution:** Check API_BASE_URL, verify backend is running, check token
+1. Create feature directory structure
+2. Add domain models in `src/domain/models/`
+3. Create repository for API calls
+4. Create service for business logic
+5. Create controllers for React hooks
+6. Create components for UI
+7. Create screens
+8. Add to navigation
+9. Export from `index.ts`
 
-### Error: "Cannot read property 'navigate' of undefined"
+### Adding a New Screen
 
-**Solution:** Ensure component is inside NavigationContainer, use useNavigation hook
+1. Create screen component in `src/screens/`
+2. Use path aliases for imports
+3. Use theme tokens for styling
+4. Add JSDoc documentation
+5. Add to navigation stack
+6. Test TypeScript compilation
 
-### Error: "Invariant Violation: requireNativeComponent"
+### Adding a New Component
 
-**Solution:** Clear cache with `expo start -c`, reinstall dependencies
+1. Create component in appropriate directory
+2. Use theme tokens
+3. Add TypeScript types
+4. Add JSDoc documentation
+5. Export from `index.ts`
+6. Use path alias when importing
 
-### Error: "Unable to resolve module"
+## Troubleshooting
 
-**Solution:** Check import path, ensure file exists, restart bundler
+### Import Errors
 
-### Warning: "Can't perform a React state update on an unmounted component"
+- Clear Metro cache: `npx expo start -c`
+- Restart TypeScript server in IDE
+- Verify path alias in `tsconfig.json`
 
-**Solution:** Clean up subscriptions in useEffect, check async operations
+### TypeScript Errors
 
-## Performance Tips
+- Run `npx tsc --noEmit` to see all errors
+- Check import paths
+- Verify types are exported
 
-1. **Use FlatList for long lists** (not ScrollView)
-2. **Memoize expensive computations** (useMemo)
-3. **Memoize callbacks** (useCallback)
-4. **Use React.memo for components** that don't change often
-5. **Optimize images** (use appropriate sizes)
-6. **Lazy load screens** (React Navigation does this by default)
-7. **Avoid inline styles** (use StyleSheet.create)
-8. **Use key prop correctly** in lists
+### Build Errors
 
-## Security Checklist
+- Clear node_modules: `rm -rf node_modules && npm install`
+- Clear Expo cache: `npx expo start -c`
+- Verify babel.config.js has module-resolver
 
-- [ ] Use SecureStore for sensitive data
-- [ ] Never log tokens or passwords
-- [ ] Use HTTPS for API calls
-- [ ] Validate all user inputs
-- [ ] Sanitize data before display
-- [ ] Use proper authentication
-- [ ] Handle errors gracefully
-- [ ] Don't expose sensitive info in error messages
+## Documentation
+
+- [README.md](../README.md) - Project overview
+- [Architecture Overview](./architecture-overview.md) - System architecture
+- [Domain Models](./domain-model-and-entities.md) - Data models
+- [Development Workflow](./development-workflow.md) - Development process
+- [Implementation Roadmap](./implementation-roadmap.md) - Feature roadmap
+- [Testing Guide](./testing-guide.md) - Testing strategies
+- [UI Components](./ui-components-and-theming.md) - UI documentation
+- [Codebase Modernization](./codebase-modernization-summary.md) - Recent updates
+- [ToDo Enhancement](./todo-enhancement-summary.md) - ToDo feature updates
+- [Habit Implementation](./habit-ui-implementation-summary.md) - Habit feature updates

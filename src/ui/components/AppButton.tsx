@@ -1,8 +1,8 @@
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet, TouchableOpacityProps } from "react-native";
-import { colors } from "../theme/colors";
-import { spacing } from "../theme/spacing";
-import { radius } from "../theme/radius";
+import { colors } from "@ui/theme/colors";
+import { spacing } from "@ui/theme/spacing";
+import { radius } from "@ui/theme/radius";
 
 interface Props extends TouchableOpacityProps {
   title: string;

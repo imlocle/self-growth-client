@@ -1,8 +1,8 @@
 import React from "react";
 import { View, StyleSheet, ViewProps } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { colors } from "../theme/colors";
-import { spacing } from "../theme/spacing";
+import { colors } from "@ui/theme/colors";
+import { spacing } from "@ui/theme/spacing";
 
 type Props = ViewProps & {
   children: React.ReactNode;

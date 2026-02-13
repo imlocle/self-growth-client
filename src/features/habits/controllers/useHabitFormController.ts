@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { habitService } from "../services/habitService";
-import { ICreateHabitInput, IUpdateHabitInput } from "../../../domain/models/habit";
-import { useAppScope } from "../../../scope/AppScopeContext";
+import { ICreateHabitInput, IUpdateHabitInput } from "@domain/models/habit";
+import { useAppScope } from "@scope/AppScopeContext";
 
 /**
  * Generates the React Query cache key for habits.

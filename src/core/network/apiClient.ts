@@ -1,6 +1,6 @@
 import axios from "axios";
-import { ENV } from "../config/env";
-import { getAccessToken } from "../../auth/tokenStorage";
+import { ENV } from "@core/config/env";
+import { getAccessToken } from "@auth/tokenStorage";
 
 /**
  * Axios API Client

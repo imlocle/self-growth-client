@@ -1,5 +1,5 @@
-import { apiClient } from "../../../core/network/apiClient";
-import { ICreateUserProfileInput, IUserProfile } from "../../../domain/models/profile";
+import { apiClient } from "@core/network/apiClient";
+import { ICreateUserProfileInput, IUserProfile } from "@domain/models/profile";
 
 
 

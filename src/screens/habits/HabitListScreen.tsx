@@ -2,14 +2,13 @@ import React from "react";
 import { View, Text, StyleSheet, FlatList, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { IHabit } from "../../domain/models/habit";
-import { useHabitListController } from "../../features/habits/controllers/useHabitListController";
-import HabitCard from "../../features/habits/components/HabitCard";
-import { Screen } from "../../ui/components/Screen";
-import { colors } from "../../ui/theme/colors";
-import { spacing } from "../../ui/theme/spacing";
-import { typography } from "../../ui/theme/typography";
-import { HabitStackParamList } from "../../navigation/HabitStack";
+import { IHabit } from "@domain/models/habit";
+import { useHabitListController } from "@features/habits/controllers/useHabitListController";
+import HabitCard from "@features/habits/components/HabitCard";
+import { Screen } from "@ui/components/Screen";
+import { colors } from "@ui/theme/colors";
+import { spacing } from "@ui/theme/spacing";
+import { HabitStackParamList } from "@navigation/HabitStack";
 
 type HabitNav = NativeStackNavigationProp<HabitStackParamList, "HabitList">;
 

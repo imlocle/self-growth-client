@@ -2,11 +2,11 @@ import React from "react";
 import { Pressable } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
-import { IHabit } from "../domain/models/habit";
-import HabitListScreen from "../screens/habits/HabitListScreen";
-import CreateHabitScreen from "../screens/habits/CreateHabitScreen";
-import EditHabitScreen from "../screens/habits/EditHabitScreen";
-import { colors } from "../ui/theme/colors";
+import { IHabit } from "@domain/models/habit";
+import HabitListScreen from "@screens/habits/HabitListScreen";
+import CreateHabitScreen from "@screens/habits/CreateHabitScreen";
+import EditHabitScreen from "@screens/habits/EditHabitScreen";
+import { colors } from "@ui/theme/colors";
 
 /**
  * Habit Stack Parameter List

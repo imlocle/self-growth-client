@@ -1,11 +1,11 @@
-import { apiClient } from "../../../core/network/apiClient";
-import { scopedPath } from "../../../scope/scopePath";
+import { apiClient } from "@core/network/apiClient";
+import { scopedPath } from "@scope/scopePath";
 import {
   IToDo,
   ICreateToDoInput,
   IUpdateToDoInput,
   IListToDoOutput,
-} from "../../../domain/models/todo";
+} from "@domain/models/todo";
 
 /**
  * ToDo Repository

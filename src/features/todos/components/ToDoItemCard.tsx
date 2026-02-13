@@ -1,10 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { IToDo } from "../../../domain/models/todo";
-import { colors } from "../../../ui/theme/colors";
-import { spacing } from "../../../ui/theme/spacing";
-import { radius } from "../../../ui/theme/radius";
+import { IToDo } from "@domain/models/todo";
+import { colors } from "@ui/theme/colors";
+import { spacing } from "@ui/theme/spacing";
+import { radius } from "@ui/theme/radius";
 
 interface Props {
   todo: IToDo;

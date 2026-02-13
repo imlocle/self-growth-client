@@ -1,4 +1,4 @@
-import { apiClient } from "../core/network/apiClient";
+import { apiClient } from "@core/network/apiClient";
 
 export type LoginResponse = {
   accessToken: string;

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, TextInput } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useHabitFormController } from "../../features/habits/controllers/useHabitFormController";
+import { useHabitFormController } from "@features/habits/controllers/useHabitFormController";
 import {
   HabitCounter,
   HabitDifficulty,
@@ -10,13 +10,13 @@ import {
   HABIT_COUNTER_OPTIONS,
   HABIT_DIFFICULTY_OPTIONS,
   HABIT_TYPE_OPTIONS,
-} from "../../domain/models/habit";
-import { Screen } from "../../ui/components/Screen";
-import { AppButton } from "../../ui/components/AppButton";
-import { colors } from "../../ui/theme/colors";
-import { spacing } from "../../ui/theme/spacing";
-import { radius } from "../../ui/theme/radius";
-import { typography } from "../../ui/theme/typography";
+} from "@domain/models/habit";
+import { Screen } from "@ui/components/Screen";
+import { AppButton } from "@ui/components/AppButton";
+import { colors } from "@ui/theme/colors";
+import { spacing } from "@ui/theme/spacing";
+import { radius } from "@ui/theme/radius";
+import { typography } from "@ui/theme/typography";
 
 type HabitStackParamList = {
   HabitList: undefined;

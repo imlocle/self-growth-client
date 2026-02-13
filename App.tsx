@@ -3,10 +3,10 @@ import { NavigationContainer } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { MainTabs } from "./src/navigation/MainTabs";
-import { AuthProvider, useAuth } from "./src/auth/AuthContext";
-import { AuthStack } from "./src/navigation/AuthStack";
-import { AppScopeProvider } from "./src/scope/AppScopeContext";
+import { MainTabs } from "@navigation/MainTabs";
+import { AuthProvider, useAuth } from "@auth/AuthContext";
+import { AuthStack } from "@navigation/AuthStack";
+import { AppScopeProvider } from "@scope/AppScopeContext";
 
 const queryClient = new QueryClient();
 

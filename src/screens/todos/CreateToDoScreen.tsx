@@ -11,15 +11,15 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 
-import { ToDoStackParamList } from "../../navigation/ToDoStack";
-import { useToDoFormController } from "../../features/todos/controllers/useToDoFormController";
-import { Difficulty, DIFFICULTY_OPTIONS, ICreateToDoInput } from "../../domain/models/todo";
+import { ToDoStackParamList } from "@navigation/ToDoStack";
+import { useToDoFormController } from "@features/todos/controllers/useToDoFormController";
+import { Difficulty, DIFFICULTY_OPTIONS, ICreateToDoInput } from "@domain/models/todo";
 
-import { Screen } from "../../ui/components/Screen";
-import { AppButton } from "../../ui/components/AppButton";
-import { colors } from "../../ui/theme/colors";
-import { spacing } from "../../ui/theme/spacing";
-import { radius } from "../../ui/theme/radius";
+import { Screen } from "@ui/components/Screen";
+import { AppButton } from "@ui/components/AppButton";
+import { colors } from "@ui/theme/colors";
+import { spacing } from "@ui/theme/spacing";
+import { radius } from "@ui/theme/radius";
 
 type Props = NativeStackScreenProps<ToDoStackParamList, "CreateToDo">;
 

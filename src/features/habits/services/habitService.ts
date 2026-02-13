@@ -1,4 +1,4 @@
-import { ICreateHabitInput, IHabit, IUpdateHabitInput } from "../../../domain/models/habit";
+import { ICreateHabitInput, IHabit, IUpdateHabitInput } from "@domain/models/habit";
 import { habitRepository } from "../repositories/habitRepository";
 
 /**

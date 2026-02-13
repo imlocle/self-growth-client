@@ -1,5 +1,5 @@
-import { ICreateUserProfileInput, IUserProfile } from "../../../domain/models/profile";
-import { profileRepository } from "../api/profileRepository";
+import { ICreateUserProfileInput, IUserProfile } from "@domain/models/profile";
+import { profileRepository } from "../repositories/profileRepository";
 
 export const profileService = {
   async getOrCreate(payload?: ICreateUserProfileInput): Promise<IUserProfile> {

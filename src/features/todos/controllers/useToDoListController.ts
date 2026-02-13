@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { todoService } from "../services/todoService";
-import { IToDo } from "../../../domain/models/todo";
-import { useAppScope } from "../../../scope/AppScopeContext";
+import { IToDo } from "@domain/models/todo";
+import { useAppScope } from "@scope/AppScopeContext";
 
 /**
  * Generates the React Query cache key for todos.

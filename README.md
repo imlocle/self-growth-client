@@ -1,11 +1,218 @@
 # Self Growth App
 
-### Deployment
+A React Native mobile application for personal growth tracking, built with Expo and TypeScript.
+
+## Features
+
+- **Habit Tracking**: Create, track, and manage daily/weekly/monthly habits
+- **To-Do Management**: Organize tasks with checklists, due dates, and difficulty levels
+- **User Profiles**: Personalized user profiles with household and subject scoping
+- **Authentication**: Secure login and signup with JWT tokens
+- **Offline Support**: Local data caching with React Query
+
+## Tech Stack
+
+- **Framework**: React Native with Expo
+- **Language**: TypeScript
+- **State Management**: React Query (TanStack Query)
+- **Navigation**: React Navigation v7
+- **Styling**: StyleSheet with theme tokens
+- **API Client**: Axios
+- **Storage**: Expo Secure Store & Async Storage
+
+## Project Structure
+
+```
+src/
+├── auth/              # Authentication logic and context
+├── core/              # Core utilities (API client, config)
+├── domain/            # Domain models and types
+├── features/          # Feature modules (habits, todos, profile)
+│   ├── habits/
+│   │   ├── components/
+│   │   ├── controllers/
+│   │   ├── repositories/
+│   │   └── services/
+│   └── todos/
+│       ├── components/
+│       ├── controllers/
+│       ├── repositories/
+│       └── services/
+├── navigation/        # Navigation stacks and tabs
+├── scope/             # Household/subject scoping logic
+├── screens/           # Screen components
+└── ui/                # Shared UI components and theme
+```
+
+## Path Aliases
+
+The project uses TypeScript path aliases for cleaner imports:
+
+```typescript
+import { colors } from "@ui/theme/colors";
+import { IHabit } from "@domain/models/habit";
+import { useHabitListController } from "@features/habits/controllers/useHabitListController";
+```
+
+Available aliases:
+
+- `@auth/*` - Authentication
+- `@core/*` - Core utilities
+- `@domain/*` - Domain models
+- `@features/*` - Feature modules
+- `@navigation/*` - Navigation
+- `@scope/*` - Scoping logic
+- `@screens/*` - Screens
+- `@ui/*` - UI components and theme
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 22.x or higher
+- npm or yarn
+- Expo CLI
+- iOS Simulator (Mac) or Android Emulator
+
+### Installation
+
+1. Clone the repository
 
 ```bash
-npm run start
+git clone <repository-url>
+cd self-growth-app
 ```
+
+2. Install dependencies
+
+```bash
+npm install
+```
+
+3. Set up environment variables
+   Create a `.env` file in the root directory (see `.env.example`)
+
+### Development
+
+Start the development server:
+
+```bash
+npm start
+```
+
+Run on specific platform:
+
+```bash
+npm run ios      # iOS Simulator
+npm run android  # Android Emulator
+npm run web      # Web browser
+```
+
+Clear cache and restart:
 
 ```bash
 npx expo start -c
 ```
+
+### Type Checking
+
+Run TypeScript compiler:
+
+```bash
+npx tsc --noEmit
+```
+
+## Architecture
+
+### Feature Module Pattern
+
+Each feature follows a consistent architecture:
+
+```
+feature/
+├── components/       # UI components
+├── controllers/      # React hooks for state management
+├── repositories/     # API communication layer
+├── services/         # Business logic layer
+└── index.ts          # Barrel export
+```
+
+### Data Flow
+
+```
+Screen → Controller → Service → Repository → API
+                ↓
+            React Query Cache
+```
+
+### Scoping
+
+All data is scoped by household and subject for multi-user support:
+
+- Household: Group of users (e.g., family)
+- Subject: Individual user within a household
+
+## Code Standards
+
+### TypeScript
+
+- Strict mode enabled
+- No `any` types
+- Comprehensive JSDoc documentation
+- Proper type imports from domain models
+
+### Styling
+
+- Use theme tokens (colors, spacing, radius, typography)
+- No hardcoded values
+- Consistent naming conventions
+- StyleSheet.create for all styles
+
+### Documentation
+
+- JSDoc comments on all functions and components
+- Include parameter descriptions
+- Include return type descriptions
+- Include usage examples
+- Document error scenarios
+
+### Testing
+
+- Unit tests for services and repositories
+- Integration tests for controllers
+- E2E tests for critical user flows
+
+## Environment Variables
+
+Required environment variables:
+
+```
+API_BASE_URL=https://api.example.com
+```
+
+## Contributing
+
+1. Create a feature branch
+2. Make your changes
+3. Ensure TypeScript compilation passes
+4. Update documentation
+5. Submit a pull request
+
+## Documentation
+
+Additional documentation available in `/docs`:
+
+- [Architecture Overview](docs/architecture-overview.md)
+- [Domain Models](docs/domain-model-and-entities.md)
+- [Development Workflow](docs/development-workflow.md)
+- [Implementation Roadmap](docs/implementation-roadmap.md)
+- [Testing Guide](docs/testing-guide.md)
+- [UI Components](docs/ui-components-and-theming.md)
+
+## License
+
+[Your License Here]
+
+## Support
+
+For issues and questions, please open an issue on GitHub.

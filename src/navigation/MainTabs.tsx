@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import { ToDoStackNavigator } from "./ToDoStack";
 import { HabitStackNavigator } from "./HabitStack";
-import { ProfileScreen } from "../screens/ProfileScreen";
+import { ProfileScreen } from "@screens/ProfileScreen";
 import { CustomTabBar } from "./CustomTabBar";
 
 export type RootTabParamList = {

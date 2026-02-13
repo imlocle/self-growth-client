@@ -1,4 +1,4 @@
-import { ICreateToDoInput, IToDo, IUpdateToDoInput } from "../../../domain/models/todo";
+import { ICreateToDoInput, IToDo, IUpdateToDoInput } from "@domain/models/todo";
 import { todoRepository } from "../repositories/todoRepository";
 
 /**
