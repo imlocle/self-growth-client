@@ -6,6 +6,44 @@ All notable changes to the Self-Growth frontend application.
 
 ### Added - February 2025 (Latest Update)
 
+#### Habit UI Components and Screens
+
+- ✅ **HabitCard Component** - Complete habit display card
+  - Shows title, description, counter type, difficulty stars
+  - Visual indicators for build/quit type
+  - Archive/reactivate buttons
+  - Status-based styling (active/archived/deleted)
+- ✅ **HabitListScreen** - Full-featured habit list
+  - Displays all active and archived habits
+  - Archive/reactivate functionality
+  - Tap to edit navigation
+  - Loading, error, and empty states
+  - Scope validation
+- ✅ **CreateHabitScreen** - Habit creation form
+  - Title and description inputs
+  - Type selection (build/quit)
+  - Frequency selection (daily/weekly/monthly)
+  - Difficulty selection with stars
+  - Input validation
+  - Error handling
+- ✅ **EditHabitScreen** - Habit editing form
+  - Pre-filled form with current data
+  - Update functionality
+  - Delete with confirmation dialog
+  - Loading states
+  - Error handling
+- ✅ **HabitStack Navigator** - Navigation stack for habits
+  - List, create, and edit screens
+  - FAB button for creating habits
+  - Modal presentation for create screen
+  - Consistent header styling
+- ✅ **MainTabs Integration** - Updated main navigation
+  - Habits tab now uses HabitStack
+  - Matches ToDo tab pattern
+  - Proper header configuration
+
+### Added - February 2025 (Previous Updates)
+
 #### Habit Service and Controllers
 
 - ✅ **Habit Service** - Complete business logic layer for habits

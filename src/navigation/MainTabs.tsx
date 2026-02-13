@@ -2,14 +2,13 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import { ToDoStackNavigator } from "./ToDoStack";
-import { HabitScreen } from "../screens/habits/HabitScreen";
+import { HabitStackNavigator } from "./HabitStack";
 import { ProfileScreen } from "../screens/ProfileScreen";
 import { CustomTabBar } from "./CustomTabBar";
 
 export type RootTabParamList = {
   ToDos: undefined;
   Habits: undefined;
-  Blog: undefined;
   Profile: undefined;
 };
 
@@ -30,7 +29,11 @@ export const MainTabs: React.FC = () => {
         component={ToDoStackNavigator}
         options={{ headerShown: false }} // stack handles its own header
       />
-      <Tab.Screen name="Habits" component={HabitScreen} />
+      <Tab.Screen
+        name="Habits"
+        component={HabitStackNavigator}
+        options={{ headerShown: false }} // stack handles its own header
+      />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
