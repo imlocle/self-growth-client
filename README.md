@@ -80,7 +80,7 @@ Available aliases:
 
 ```bash
 git clone <repository-url>
-cd self-growth-app
+cd self-growth-client
 ```
 
 2. Install dependencies
@@ -197,6 +197,38 @@ API_BASE_URL=https://api.example.com
 3. Ensure TypeScript compilation passes
 4. Update documentation
 5. Submit a pull request
+
+## Design System
+
+This app features an elegant, calming design system crafted for adults focused on personal development, with special consideration for users with ADHD and anxiety.
+
+### Key Features
+
+- **Calming Color Palette** - Sage green, serene blue, soft purple
+- **ADHD-Friendly** - Generous spacing, clear hierarchy, high line heights
+- **Anxiety-Reducing** - Muted colors, soft shadows, predictable patterns
+- **Accessible** - 44x44px touch targets, WCAG AA contrast standards
+- **Professional** - Sophisticated, minimalistic, adult-focused
+
+### Quick Start
+
+```typescript
+import { colors, spacing, typography } from '@ui/theme';
+import { AppButton, Card, Badge } from '@ui/components';
+
+<AppButton title="Continue" variant="primary" />
+<Card variant="elevated">Content</Card>
+<Badge label="Daily" variant="primary" />
+```
+
+### Documentation
+
+- **[Design System Index](docs/DESIGN-SYSTEM-INDEX.md)** - Start here for complete guide
+- **[Quick Start](docs/design-quick-start.md)** - Get up and running in 5 minutes
+- **[Design System](docs/design-system.md)** - Comprehensive documentation
+- **[Color Guide](docs/color-palette-guide.md)** - Color psychology and usage
+- **[Migration Guide](docs/design-migration-guide.md)** - Update existing code
+- **[Examples](docs/design-before-after-examples.md)** - Before/after comparisons
 
 ## Documentation
 
