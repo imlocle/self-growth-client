@@ -1,3 +1,5 @@
+<!-- Last Updated: February 19, 2026 -->
+
 # Design System
 
 ## Philosophy

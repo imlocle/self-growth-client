@@ -1,84 +1,52 @@
+<!-- Last Updated: February 19, 2026 -->
+
 # Domain Model and Entities
 
-## Overview
-
-The Self-Growth app follows a hierarchical ownership model:
+## Ownership Hierarchy
 
 ```
 User (Cognito Identity)
   └── UserProfile (App Identity)
-       └── Household (Shared Container)
-            └── Subject (Individual Being Tracked)
-                 ├── ToDos
-                 ├── Habits
-                 └── HabitEvents (future)
+       ├── HouseholdMember (Access Control) → Household
+       │       ↓
+       │       HouseholdSubject (Tracked Individual)
+       │           ↓
+       │           Todos, Habits, BlogPosts
+       │
+       └── HouseholdMember → Another Household
+               ↓
+               HouseholdSubject
+                   ↓
+                   Todos, Habits, BlogPosts
 ```
 
 ## Core Concepts
 
 ### User vs UserProfile
 
-**User (Cognito)**
-
-- Authentication identity
-- Managed by AWS Cognito
-- Email, password, phone number
-- Not directly used in app logic
-
-**UserProfile (Application)**
-
-- Application identity
-- Links Cognito user to app data
-- Contains household/subject memberships
-- Created after signup confirmation
-
-This separation allows:
-
-- Multiple profiles per Cognito user (future)
-- Shared device support
-- Caregiver permissions (future)
+- **User (Cognito)** — Authentication identity managed by AWS Cognito (email, password).
+- **UserProfile** — Application identity linking Cognito user to app data. Created during onboarding.
+- **Does NOT contain** `householdId` or `subjectId` (users can be members of multiple households).
+- **Does NOT contain** `email` (managed by Cognito, not the app layer).
 
 ### Household
 
-A shared container representing:
+A shared container (family, couple, individual workspace). All data is scoped under a household.
 
-- A family unit
-- A couple
-- A care group
-- A single person's workspace
+### HouseholdMember
 
-**Key Properties:**
+Access control entity that links users to households with permissions (owner, admin, member).
 
-- `householdId`: Unique identifier
-- Members: Users who have access (managed on backend)
-- Subjects: Individuals being tracked
+- Does NOT contain `displayName` or `dob` (those belong on HouseholdSubject).
+- Represents WHO can access the household.
 
-**Purpose:**
+### HouseholdSubject
 
-- Scope data access
-- Enable family tracking
-- Support caregiver scenarios
+An individual being tracked within a household (self, child, adult, pet). Each subject has their own habits and todos.
 
-### Subject
-
-An individual being tracked within a household:
-
-- Yourself
-- Your child
-- Your parent
-- A dependent
-
-**Key Properties:**
-
-- `subjectId`: Unique identifier
-- `householdId`: Parent household
-- Name, metadata (managed on backend)
-
-**Purpose:**
-
-- Separate tracking for different people
-- Enable "track my child's habits" use case
-- Support elderly care scenarios
+- Contains `displayName` and `dob` for the tracked individual.
+- Has `createdByUserId` field tracking who created this subject (set from JWT by backend).
+- Represents the individual being tracked (has todos, habits, blogs).
 
 ## Entity Models
 
@@ -88,25 +56,121 @@ An individual being tracked within a household:
 
 ```typescript
 interface IUserProfile {
-  userId: string; // Cognito sub
+  id: string;
+  username: string;
   firstName?: string;
   lastName?: string;
-  defaultHouseholdId?: string; // Future: default selection
-  defaultSubjectId?: string; // Future: default selection
+  phoneNumber?: string;
+  entity?: string;
+  dateCreated?: string;
+  dateModified?: string;
+}
+
+interface ICreateUserProfileInput {
+  username: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+}
+
+interface IUpdateUserProfileInput {
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
 }
 ```
 
-**API Endpoints:**
+**API:** `GET /user-profile` · `POST /user-profile` · `PUT /user-profile`
 
-- `GET /user-profile` - Get current user's profile
-- `POST /user-profile` - Create profile after signup
-- `PUT /user-profile` - Update profile
+**Important:** UserProfile does NOT contain `householdId`, `subjectId`, or `email`. Users can be members of multiple households. The frontend manages the "current scope" (selected household and subject) in SecureStore.
 
-**Frontend State:**
+### Household
 
-- Stored in `AppScopeContext.userProfile`
-- Persisted to SecureStore
-- Loaded on app start
+**Location:** `src/domain/models/household.ts`
+
+```typescript
+interface IHousehold {
+  id: string;
+  name: string;
+  ownerUserId: string;
+  entity?: string;
+  dateCreated: string;
+  dateModified: string;
+}
+
+interface ICreateHouseholdInput {
+  name: string;
+}
+```
+
+**API:** `GET /households` · `GET /households/{id}` · `POST /households` · `PUT /households/{id}` · `DELETE /households/{id}`
+
+**Backend Behavior:** When a user creates a household, the backend automatically creates a HouseholdMember record linking the user to the household with role `owner`.
+
+### HouseholdMember
+
+**Location:** `src/domain/models/householdMember.ts`
+
+```typescript
+type HouseholdMemberRole = "owner" | "admin" | "member";
+
+interface IHouseholdMember {
+  householdId: string;
+  userId: string;
+  role: HouseholdMemberRole;
+  entity?: string;
+  dateCreated: string;
+  dateModified: string;
+}
+```
+
+**API:** `GET /households/{id}/members` · `POST /households/{id}/members` · `DELETE /households/{id}/members/{userId}`
+
+**Important:** HouseholdMember represents access control (who can access the household). It does NOT contain `displayName` or `dob` (those belong on HouseholdSubject).
+
+### HouseholdSubject
+
+**Location:** `src/domain/models/householdSubject.ts`
+
+```typescript
+type HouseholdSubjectType = "self" | "child" | "adult" | "pet";
+
+interface IHouseholdSubject {
+  id: string;
+  householdId: string;
+  createdByUserId: string;
+  type: HouseholdSubjectType;
+  displayName?: string;
+  dob?: string; // ISO 8601 (YYYY-MM-DD)
+  points?: number;
+  level?: number;
+  dateCreated: string;
+  dateModified: string;
+}
+```
+
+**API:** `GET /households/{id}/subjects` · `GET /households/{id}/subjects/{id}` · `POST /households/{id}/subjects` · `PUT /households/{id}/subjects/{id}` · `DELETE /households/{id}/subjects/{id}`
+
+**Important:**
+
+- `createdByUserId` is automatically set from the authenticated user's token.
+- HouseholdSubject represents the tracked individual (has todos, habits, blogs).
+- `displayName` and `dob` are stored here (not on HouseholdMember).
+- UI constants: `SUBJECT_TYPE_OPTIONS` provides labels and descriptions for type selection.
+
+### IBaseEntity (shared by ToDo and Habit)
+
+**Location:** `src/domain/models/todo.ts`
+
+```typescript
+interface IBaseEntity {
+  id: string;
+  householdId: string;
+  subjectId: string;
+  dateCreated: string;
+  dateModified: string;
+}
+```
 
 ### ToDo
 
@@ -115,52 +179,15 @@ interface IUserProfile {
 ```typescript
 interface IToDo extends IBaseEntity {
   title: string;
-  checklist?: string[]; // Sub-tasks
-  dateDue?: string; // ISO date string
+  checklist?: string[];
+  dateDue?: string;
   description?: string;
-  difficulty?: Difficulty; // trivial | easy | medium | hard
-  status?: ToDoStatus; // active | completed | deleted
+  difficulty?: Difficulty; // "trivial" | "easy" | "medium" | "hard"
+  status?: ToDoStatus; // "active" | "completed" | "deleted"
 }
 ```
 
-**Base Entity Fields:**
-
-```typescript
-interface IBaseEntity {
-  id: string;
-  dataCreated: string; // ISO timestamp
-  dateModified: string; // ISO timestamp
-}
-```
-
-**Difficulty Levels:**
-
-- `trivial` (1 star) - Quick tasks
-- `easy` (2 stars) - Simple tasks
-- `medium` (3 stars) - Moderate effort
-- `hard` (4 stars) - Significant effort
-
-**Status Lifecycle:**
-
-```
-active → completed
-  ↓
-deleted (soft delete)
-```
-
-**API Endpoints:**
-
-- `GET /households/{hid}/subjects/{sid}/todos` - List all
-- `GET /households/{hid}/subjects/{sid}/todos/{id}` - Get one
-- `POST /households/{hid}/subjects/{sid}/todos` - Create
-- `PUT /households/{hid}/subjects/{sid}/todos/{id}` - Update
-- `DELETE /households/{hid}/subjects/{sid}/todos/{id}` - Soft delete
-
-**Frontend Usage:**
-
-- Managed by `todoService` and `todoRepository`
-- State managed by React Query in `useToDoListController`
-- UI in `ToDoScreen` and `ToDoItemCard`
+**API:** Scoped under `/households/{hid}/subjects/{sid}/todos`
 
 ### Habit
 
@@ -169,288 +196,69 @@ deleted (soft delete)
 ```typescript
 interface IHabit extends IBaseEntity {
   title: string;
-  counter?: string; // daily | weekly | monthly
+  counter?: HabitCounter; // "daily" | "weekly" | "monthly"
   description?: string;
-  difficulty?: string; // trivial | easy | medium | hard
-  status?: string; // active | archived | deleted
-  type?: string; // build | quit
+  difficulty?: HabitDifficulty; // "trivial" | "easy" | "medium" | "hard"
+  status?: HabitStatus; // "active" | "archived" | "deleted"
+  type?: HabitType; // "build" | "quit"
 }
 ```
 
-**Counter Types:**
+**API:** Scoped under `/households/{hid}/subjects/{sid}/habits`
 
-- `daily` - Track every day
-- `weekly` - Track once per week
-- `monthly` - Track once per month
-
-**Habit Types:**
-
-- `build` - Positive habit to develop (e.g., "Exercise daily")
-- `quit` - Negative habit to eliminate (e.g., "Stop smoking")
-
-**Status Lifecycle:**
-
-```
-active → archived (paused, not deleted)
-  ↓
-deleted (soft delete)
-```
-
-**API Endpoints:**
-
-- `GET /households/{hid}/subjects/{sid}/habits` - List all
-- `GET /households/{hid}/subjects/{sid}/habits/{id}` - Get one
-- `POST /households/{hid}/subjects/{sid}/habits` - Create
-- `PUT /households/{hid}/subjects/{sid}/habits/{id}` - Update
-- `DELETE /households/{hid}/subjects/{sid}/habits/{id}` - Soft delete
-
-**Frontend Status:**
-
-- Repository exists but NOT scoped yet (needs update)
-- No UI implementation yet
-- Planned after ToDo feature is stable
+**UI Constants:** `HABIT_DIFFICULTY_OPTIONS`, `HABIT_COUNTER_OPTIONS`, `HABIT_TYPE_OPTIONS` provide labels and metadata for dropdowns.
 
 ### HabitEvent (Future)
-
-**Purpose:** Log habit occurrences to track consistency
 
 ```typescript
 interface IHabitEvent {
   id: string;
-  householdId: string;
-  subjectId: string;
   habitId: string;
-  periodKey: string; // Auto-calculated: "2025-01-15" for daily
-  status: string; // done | skipped | failed
+  periodKey: string; // e.g., "2025-01-15" for daily
+  status: string; // "done" | "skipped" | "failed"
   note?: string;
-  dateCreated: string;
-  dateModified: string;
 }
 ```
 
-**Key Concepts:**
-
-- One event per period (enforced by backend)
-- Period key calculated from habit counter type
-- Idempotent by design (same action = same key)
-
-**API Endpoints:**
-
-- `POST /households/{hid}/subjects/{sid}/habits/{hid}/events` - Log event
-- Returns 400 if event already exists for period
-
-**Frontend Status:**
-
-- Not implemented yet
-- Next priority after Habits UI is complete
+One event per period, enforced by backend. Not yet implemented on frontend.
 
 ## Scope Management
-
-### AppScope
 
 **Location:** `src/scope/AppScopeContext.tsx`
 
 ```typescript
-type AppScope = {
-  userProfile: UserProfile | null;
-  activeHouseholdId: string | null;
-  activeSubjectId: string | null;
-};
-```
-
-**Purpose:**
-
-- Track which household/subject is currently active
-- Persist selection across app restarts
-- Provide scope to all API calls
-
-**Storage:**
-
-- Persisted to SecureStore
-- Keys: `sg_active_household_id`, `sg_active_subject_id`, `sg_user_profile_json`
-
-**Usage Pattern:**
-
-```typescript
 const { activeHouseholdId, activeSubjectId } = useAppScope();
-
-// All API calls require scope
 todoService.list(activeHouseholdId, activeSubjectId);
 ```
 
-## Data Validation
+Scope is persisted to SecureStore and restored on app launch. All repositories require explicit `householdId` and `subjectId` parameters.
 
-### Frontend Validation
+### Scope Storage Keys
 
-**Username:**
+- `sg_active_household_id` — Currently selected household
+- `sg_active_subject_id` — Currently selected subject
+- `sg_user_profile_json` — Cached user profile
 
-- 3-20 characters
-- Alphanumeric + underscore only
-- Validated on signup
+## Onboarding Flow
 
-**Email:**
+New users go through a 4-screen onboarding after first login:
 
-- RFC-compliant format
-- Validated on signup
+1. **Welcome** — Introduction with Lao Tzu quote
+2. **ProfileSetup** — Username, first name, last name
+3. **HouseholdSetup** — Create household AND "self" subject in one step
+4. **OnboardingComplete** — Sets scope (householdId + subjectId) and transitions to MainTabs
 
-**Phone:**
-
-- 10-15 digits only
-- Validated on signup
-
-**Dates:**
-
-- ISO 8601 format (YYYY-MM-DD)
-- Validated before API calls
-
-**Difficulty:**
-
-- Must be one of: `trivial`, `easy`, `medium`, `hard`
-- Dropdown selection enforces this
-
-**Status Fields:**
-
-- ToDo: `active`, `completed`, `deleted`
-- Habit: `active`, `archived`, `deleted`
-- HabitEvent: `done`, `skipped`, `failed`
-
-### Backend Validation
-
-Backend performs additional validation:
-
-- Authorization checks (user has access to household/subject)
-- Business rule validation
-- Data integrity checks
-
-Frontend should still validate to provide immediate feedback.
-
-## Relationships
-
-### User → Household (Many-to-Many)
-
-**Current Implementation:**
-
-- User can belong to multiple households (backend supports)
-- Frontend assumes single household for now
-- Future: Household selection screen
-
-**Backend Table:**
-
-- `HouseholdMembership` table (not exposed to frontend yet)
-
-### Household → Subject (One-to-Many)
-
-**Current Implementation:**
-
-- Household contains multiple subjects
-- Frontend assumes single subject for now
-- Future: Subject selection/creation UI
-
-**Backend Table:**
-
-- Subjects have `householdId` foreign key
-
-### Subject → ToDos/Habits (One-to-Many)
-
-**Current Implementation:**
-
-- Each todo/habit belongs to one subject
-- Scoped API paths enforce this relationship
-- Frontend passes scope to all operations
-
-### Habit → HabitEvents (One-to-Many)
-
-**Future Implementation:**
-
-- Each habit can have many events
-- One event per period enforced by backend
-- Frontend will display streak/consistency data
+Returning users who already have a profile but no household skip directly to HouseholdSetup.
 
 ## Data Lifecycle
 
-### ToDo Lifecycle
+### ToDo: `active → completed ↔ active → deleted (soft)`
 
-```
-1. User creates ToDo (status: active)
-2. User toggles completion (status: completed)
-3. User can toggle back to active
-4. User deletes (status: deleted, soft delete)
-```
+### Habit: `active → archived ↔ active → deleted (soft)`
 
-**Soft Delete:**
+Soft deletes keep records in the database but filter them from list views.
 
-- Record remains in database
-- Filtered out of list views
-- Can be restored (future feature)
+## Related Docs
 
-### Habit Lifecycle
-
-```
-1. User creates Habit (status: active)
-2. User logs events regularly
-3. User archives when paused (status: archived)
-4. User can reactivate
-5. User deletes (status: deleted, soft delete)
-```
-
-### Profile Lifecycle
-
-```
-1. User signs up (Cognito user created)
-2. User confirms email
-3. User completes onboarding (UserProfile created)
-4. Profile persists for app lifetime
-```
-
-## Future Enhancements
-
-### Planned Entities
-
-**Household (Full Model)**
-
-- Name, description
-- Created date
-- Member list with roles
-
-**Subject (Full Model)**
-
-- Name, avatar
-- Birth date (for age-appropriate tracking)
-- Relationship to user
-
-**HouseholdMembership**
-
-- User → Household relationship
-- Role (owner, member, caregiver)
-- Permissions
-
-**Reward System**
-
-- Points for completed tasks
-- Achievements/badges
-- Gamification elements
-
-### Planned Features
-
-**Recurring ToDos**
-
-- Template-based creation
-- Auto-generation on schedule
-
-**Habit Streaks**
-
-- Consecutive days tracked
-- Longest streak
-- Visual streak calendar
-
-**Family Dashboard**
-
-- View all subjects at once
-- Aggregate statistics
-- Shared goals
-
-**AI Insights**
-
-- Pattern recognition
-- Personalized suggestions
-- Progress predictions
+- [Architecture Overview](./architecture-overview.md)
+- [Service & Repository Reference](./service-and-repository-reference.md)
