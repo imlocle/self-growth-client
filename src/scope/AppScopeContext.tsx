@@ -1,19 +1,9 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import * as SecureStore from "expo-secure-store";
-
-export type UserProfile = {
-  userId: string; // maps to Cognito sub
-  firstName?: string;
-  lastName?: string;
-
-  householdId?: string;
-  subjectId?: string;
-
-  // If your backend returns memberships etc later, you can add them
-};
+import { IUserProfile } from "@domain/models/profile";
 
 type AppScope = {
-  userProfile: UserProfile | null;
+  userProfile: IUserProfile | null;
   activeHouseholdId: string | null;
   activeSubjectId: string | null;
 };
@@ -22,7 +12,7 @@ type AppScopeState = AppScope & {
   isScopeLoading: boolean;
 
   hydrateScope(): Promise<void>;
-  setUserProfile(profile: UserProfile | null): Promise<void>;
+  setUserProfile(profile: IUserProfile | null): Promise<void>;
 
   setActiveHousehold(householdId: string | null): Promise<void>;
   setActiveSubject(subjectId: string | null): Promise<void>;
@@ -42,7 +32,7 @@ const AppScopeContext = createContext<AppScopeState | null>(null);
 export function AppScopeProvider({ children }: { children: React.ReactNode }) {
   const [isScopeLoading, setIsScopeLoading] = useState(true);
 
-  const [userProfile, setUserProfileState] = useState<UserProfile | null>(null);
+  const [userProfile, setUserProfileState] = useState<IUserProfile | null>(null);
   const [activeHouseholdId, setActiveHouseholdIdState] = useState<string | null>(null);
   const [activeSubjectId, setActiveSubjectIdState] = useState<string | null>(null);
 
@@ -78,7 +68,7 @@ export function AppScopeProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const persistUserProfile = async (profile: UserProfile | null) => {
+  const persistUserProfile = async (profile: IUserProfile | null) => {
     if (!profile) {
       await SecureStore.deleteItemAsync(STORAGE_KEYS.userProfile);
       return;

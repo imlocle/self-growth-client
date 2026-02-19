@@ -2,9 +2,8 @@ import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { IHabit } from "@domain/models/habit";
-import { colors } from "@ui/theme/colors";
-import { spacing } from "@ui/theme/spacing";
-import { radius } from "@ui/theme/radius";
+import { colors, spacing, radius, typography, shadows } from "@ui/theme";
+import { Badge, IconButton } from "@ui/components";
 
 interface Props {
   habit: IHabit;
@@ -14,14 +13,13 @@ interface Props {
 }
 
 /**
- * Habit Card Component
+ * Habit Card Component - Elegant, calming design
  *
- * Displays a single habit with its details including:
- * - Title and description
- * - Counter type (daily/weekly/monthly)
- * - Difficulty level (stars)
- * - Habit type (build/quit) with visual indicator
- * - Status-based styling
+ * Features:
+ * - Soft colors and generous spacing
+ * - Clear visual hierarchy
+ * - Subtle shadows for depth
+ * - ADHD-friendly layout with clear sections
  *
  * @example
  * ```typescript
@@ -29,7 +27,6 @@ interface Props {
  *   habit={habit}
  *   onPress={() => navigation.navigate('EditHabit', { habit })}
  *   onArchive={() => archiveHabit(habit)}
- *   onReactivate={() => reactivateHabit(habit)}
  * />
  * ```
  */
@@ -39,7 +36,7 @@ const HabitCard: React.FC<Props> = ({ habit, onPress, onArchive, onReactivate })
   const isBuildHabit = habit.type === "build";
 
   /**
-   * Renders difficulty stars based on habit difficulty level
+   * Renders difficulty stars with elegant styling
    */
   const renderDifficultyStars = () => {
     const starCount = {
@@ -55,8 +52,8 @@ const HabitCard: React.FC<Props> = ({ habit, onPress, onArchive, onReactivate })
           <Ionicons
             key={index}
             name="star"
-            size={12}
-            color={colors.primary}
+            size={14}
+            color={colors.warning}
             style={styles.star}
           />
         ))}
@@ -65,7 +62,7 @@ const HabitCard: React.FC<Props> = ({ habit, onPress, onArchive, onReactivate })
   };
 
   /**
-   * Renders counter badge (daily/weekly/monthly)
+   * Renders counter badge using new Badge component
    */
   const renderCounterBadge = () => {
     if (!habit.counter) return null;
@@ -77,22 +74,24 @@ const HabitCard: React.FC<Props> = ({ habit, onPress, onArchive, onReactivate })
     };
 
     return (
-      <View style={styles.badge}>
-        <Text style={styles.badgeText}>{counterLabels[habit.counter]}</Text>
-      </View>
+      <Badge 
+        label={counterLabels[habit.counter]} 
+        variant="secondary"
+        size="small"
+      />
     );
   };
 
   /**
-   * Renders habit type indicator (build/quit)
+   * Renders habit type indicator with soft colors
    */
   const renderTypeIndicator = () => {
     return (
       <View style={[styles.typeIndicator, isBuildHabit ? styles.buildType : styles.quitType]}>
         <Ionicons
           name={isBuildHabit ? "arrow-up-circle" : "close-circle"}
-          size={16}
-          color={isBuildHabit ? colors.primary : colors.danger}
+          size={14}
+          color={isBuildHabit ? colors.success : colors.danger}
         />
         <Text style={[styles.typeText, isBuildHabit ? styles.buildText : styles.quitText]}>
           {isBuildHabit ? "Build" : "Quit"}
@@ -102,90 +101,95 @@ const HabitCard: React.FC<Props> = ({ habit, onPress, onArchive, onReactivate })
   };
 
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [pressed && styles.pressed]}>
-      <View
-        style={[
-          styles.card,
-          isArchived && styles.cardArchived,
-          isDeleted && styles.cardDeleted,
-        ]}
-      >
-        {/* Left side - Content */}
-        <View style={styles.content}>
-          {/* Title and Type */}
-          <View style={styles.titleRow}>
-            <Text
-              style={[styles.title, (isArchived || isDeleted) && styles.titleMuted]}
-              numberOfLines={2}
-            >
-              {habit.title}
-            </Text>
-            {renderTypeIndicator()}
-          </View>
-
-          {/* Description */}
-          {habit.description ? (
-            <Text style={styles.description} numberOfLines={2}>
-              {habit.description}
-            </Text>
-          ) : null}
-
-          {/* Metadata row */}
-          <View style={styles.metaRow}>
-            {renderCounterBadge()}
-            {renderDifficultyStars()}
-          </View>
+    <Pressable 
+      onPress={onPress} 
+      style={({ pressed }) => [
+        styles.card,
+        isArchived && styles.cardArchived,
+        isDeleted && styles.cardDeleted,
+        pressed && styles.pressed,
+      ]}
+    >
+      {/* Main content */}
+      <View style={styles.content}>
+        {/* Title row with type indicator */}
+        <View style={styles.titleRow}>
+          <Text
+            style={[
+              styles.title,
+              (isArchived || isDeleted) && styles.titleMuted,
+            ]}
+            numberOfLines={2}
+          >
+            {habit.title}
+          </Text>
+          {renderTypeIndicator()}
         </View>
 
-        {/* Right side - Action button */}
-        {!isDeleted && (
-          <View style={styles.actions}>
-            {isArchived ? (
-              <Pressable
-                onPress={(e) => {
-                  e.stopPropagation();
-                  onReactivate?.();
-                }}
-                hitSlop={10}
-                style={styles.actionButton}
-              >
-                <Ionicons name="play-circle-outline" size={24} color={colors.primary} />
-              </Pressable>
-            ) : (
-              <Pressable
-                onPress={(e) => {
-                  e.stopPropagation();
-                  onArchive?.();
-                }}
-                hitSlop={10}
-                style={styles.actionButton}
-              >
-                <Ionicons name="pause-circle-outline" size={24} color={colors.textMuted} />
-              </Pressable>
-            )}
-          </View>
-        )}
+        {/* Description */}
+        {habit.description ? (
+          <Text style={styles.description} numberOfLines={2}>
+            {habit.description}
+          </Text>
+        ) : null}
+
+        {/* Metadata row */}
+        <View style={styles.metaRow}>
+          {renderCounterBadge()}
+          {renderDifficultyStars()}
+        </View>
       </View>
+
+      {/* Action button */}
+      {!isDeleted && (
+        <View style={styles.actions}>
+          {isArchived ? (
+            <IconButton
+              icon="play-circle-outline"
+              variant="primary"
+              size="medium"
+              onPress={(e) => {
+                e.stopPropagation();
+                onReactivate?.();
+              }}
+            />
+          ) : (
+            <IconButton
+              icon="pause-circle-outline"
+              variant="ghost"
+              size="medium"
+              onPress={(e) => {
+                e.stopPropagation();
+                onArchive?.();
+              }}
+            />
+          )}
+        </View>
+      )}
     </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
-  pressed: { opacity: 0.95 },
   card: {
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    borderRadius: radius.md,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    borderRadius: radius.lg,
     backgroundColor: colors.surface,
     flexDirection: "row",
     alignItems: "center",
+    ...shadows.sm,
+  },
+  pressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.98 }],
   },
   cardArchived: {
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: colors.surfaceElevated,
     opacity: 0.7,
   },
   cardDeleted: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.backgroundElevated,
     opacity: 0.5,
   },
   content: {
@@ -195,75 +199,62 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: spacing.xs,
+    marginBottom: spacing.sm,
+    gap: spacing.sm,
   },
   title: {
+    ...typography.h4,
     color: colors.text,
-    fontSize: 16,
-    fontWeight: "600",
     flex: 1,
-    marginRight: spacing.sm,
   },
   titleMuted: {
     color: colors.textMuted,
   },
   description: {
-    color: colors.textSoft,
-    fontSize: 14,
-    marginBottom: spacing.sm,
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+    lineHeight: 20,
   },
   metaRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
-  },
-  badge: {
-    backgroundColor: colors.surfaceAlt,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: radius.sm,
-  },
-  badgeText: {
-    color: colors.textSoft,
-    fontSize: 12,
-    fontWeight: "500",
+    gap: spacing.md,
   },
   starsContainer: {
     flexDirection: "row",
     alignItems: "center",
+    gap: spacing.xxs,
   },
   star: {
-    marginRight: 2,
+    opacity: 0.9,
   },
   typeIndicator: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
+    paddingVertical: spacing.xs,
     borderRadius: radius.sm,
-    gap: 4,
+    gap: spacing.xs,
   },
   buildType: {
-    backgroundColor: `${colors.primary}20`,
+    backgroundColor: colors.successSubtle,
   },
   quitType: {
-    backgroundColor: `${colors.danger}20`,
+    backgroundColor: colors.dangerSubtle,
   },
   typeText: {
-    fontSize: 12,
+    ...typography.labelSmall,
     fontWeight: "600",
   },
   buildText: {
-    color: colors.primary,
+    color: colors.success,
   },
   quitText: {
     color: colors.danger,
   },
   actions: {
-    marginLeft: spacing.sm,
-  },
-  actionButton: {
-    padding: spacing.xs,
+    marginLeft: spacing.md,
   },
 });
 

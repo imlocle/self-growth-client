@@ -75,6 +75,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     alignItems: "center",
   },
-  buttonText: { color: colors.primaryText, fontWeight: "700" },
+  buttonText: { color: colors.background, fontWeight: "700" },
   error: { color: colors.danger, marginBottom: spacing.md },
 });

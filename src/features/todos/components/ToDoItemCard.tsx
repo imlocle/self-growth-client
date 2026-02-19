@@ -2,9 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { IToDo } from "@domain/models/todo";
-import { colors } from "@ui/theme/colors";
-import { spacing } from "@ui/theme/spacing";
-import { radius } from "@ui/theme/radius";
+import { colors, spacing, radius, typography, shadows } from "@ui/theme";
 
 interface Props {
   todo: IToDo;
@@ -13,15 +11,13 @@ interface Props {
 }
 
 /**
- * ToDo Item Card Component
+ * ToDo Item Card Component - Elegant, calming design
  *
- * Displays a single todo item with its details including:
- * - Title and description
- * - Completion checkbox
- * - Due date
- * - Difficulty level (stars)
- * - Checklist count
- * - Status-based styling
+ * Features:
+ * - Soft colors and generous spacing
+ * - Clear visual hierarchy
+ * - Subtle shadows for depth
+ * - ADHD-friendly layout with clear sections
  *
  * @example
  * ```typescript
@@ -37,7 +33,7 @@ const ToDoItemCard: React.FC<Props> = ({ todo, onToggle, onPress }) => {
   const isDeleted = todo.status === "deleted";
 
   /**
-   * Renders difficulty stars based on todo difficulty level
+   * Renders difficulty stars with elegant styling
    */
   const renderDifficultyStars = () => {
     if (!todo.difficulty) return null;
@@ -55,8 +51,8 @@ const ToDoItemCard: React.FC<Props> = ({ todo, onToggle, onPress }) => {
           <Ionicons
             key={index}
             name="star"
-            size={12}
-            color={colors.primary}
+            size={14}
+            color={colors.warning}
             style={styles.star}
           />
         ))}
@@ -104,59 +100,59 @@ const ToDoItemCard: React.FC<Props> = ({ todo, onToggle, onPress }) => {
   };
 
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [pressed && styles.pressed]}>
-      <View
-        style={[
-          styles.card,
-          isCompleted && styles.cardCompleted,
-          isDeleted && styles.cardDeleted,
-        ]}
+    <Pressable 
+      onPress={onPress} 
+      style={({ pressed }) => [
+        styles.card,
+        isCompleted && styles.cardCompleted,
+        isDeleted && styles.cardDeleted,
+        pressed && styles.pressed,
+      ]}
+    >
+      {/* Checkbox */}
+      <Pressable
+        onPress={(e) => {
+          e.stopPropagation();
+          onToggle();
+        }}
+        hitSlop={10}
+        style={styles.checkboxContainer}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: isCompleted }}
+        accessibilityLabel={`Mark ${todo.title} as ${isCompleted ? "incomplete" : "complete"}`}
       >
-        {/* Checkbox (does NOT trigger edit) */}
-        <Pressable
-          onPress={(e) => {
-            e.stopPropagation();
-            onToggle();
-          }}
-          hitSlop={10}
-          style={styles.checkboxContainer}
-          accessibilityRole="checkbox"
-          accessibilityState={{ checked: isCompleted }}
-          accessibilityLabel={`Mark ${todo.title} as ${isCompleted ? "incomplete" : "complete"}`}
+        <View style={[styles.checkbox, isCompleted && styles.checkboxCompleted]}>
+          {isCompleted && (
+            <Ionicons name="checkmark" size={18} color={colors.background} />
+          )}
+        </View>
+      </Pressable>
+
+      {/* Content */}
+      <View style={styles.textContainer}>
+        <Text
+          style={[styles.title, (isCompleted || isDeleted) && styles.titleMuted]}
+          numberOfLines={2}
         >
-          <View style={[styles.checkbox, isCompleted && styles.checkboxCompleted]}>
-            {isCompleted && (
-              <Ionicons name="checkmark" size={16} color={colors.primaryText} />
-            )}
-          </View>
-        </Pressable>
+          {todo.title}
+        </Text>
 
-        {/* Content */}
-        <View style={styles.textContainer}>
-          <Text
-            style={[styles.title, (isCompleted || isDeleted) && styles.titleMuted]}
-            numberOfLines={2}
-          >
-            {todo.title}
+        {todo.description ? (
+          <Text style={styles.description} numberOfLines={2}>
+            {todo.description}
           </Text>
+        ) : null}
 
-          {todo.description ? (
-            <Text style={styles.description} numberOfLines={2}>
-              {todo.description}
-            </Text>
-          ) : null}
-
-          {/* Metadata row */}
-          <View style={styles.metaRow}>
-            {todo.dateDue && (
-              <View style={styles.dueDateContainer}>
-                <Ionicons name="calendar-outline" size={14} color={colors.textMuted} />
-                <Text style={styles.dueDate}>{formatDueDate(todo.dateDue)}</Text>
-              </View>
-            )}
-            {renderChecklistIndicator()}
-            {renderDifficultyStars()}
-          </View>
+        {/* Metadata row */}
+        <View style={styles.metaRow}>
+          {todo.dateDue && (
+            <View style={styles.dueDateContainer}>
+              <Ionicons name="calendar-outline" size={14} color={colors.textMuted} />
+              <Text style={styles.dueDate}>{formatDueDate(todo.dateDue)}</Text>
+            </View>
+          )}
+          {renderChecklistIndicator()}
+          {renderDifficultyStars()}
         </View>
       </View>
     </Pressable>
@@ -164,32 +160,36 @@ const ToDoItemCard: React.FC<Props> = ({ todo, onToggle, onPress }) => {
 };
 
 const styles = StyleSheet.create({
-  pressed: { opacity: 0.95 },
   card: {
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    borderRadius: radius.md,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    borderRadius: radius.lg,
     backgroundColor: colors.surface,
     flexDirection: "row",
     alignItems: "center",
+    ...shadows.sm,
+  },
+  pressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.98 }],
   },
   cardCompleted: {
-    backgroundColor: colors.surfaceAlt,
-    opacity: 0.8,
+    backgroundColor: colors.surfaceElevated,
+    opacity: 0.7,
   },
   cardDeleted: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.backgroundElevated,
     opacity: 0.5,
   },
   checkboxContainer: {
-    marginRight: spacing.md,
+    marginRight: spacing.lg,
   },
   checkbox: {
-    width: 24,
-    height: 24,
+    width: 28,
+    height: 28,
     borderRadius: radius.sm,
     borderWidth: 2,
-    borderColor: colors.textMuted,
+    borderColor: colors.borderLight,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -202,50 +202,51 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   title: {
+    ...typography.h4,
     color: colors.text,
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: spacing.xs,
+    marginBottom: spacing.sm,
   },
   titleMuted: {
     color: colors.textMuted,
     textDecorationLine: "line-through",
   },
   description: {
-    color: colors.textSoft,
-    fontSize: 14,
-    marginBottom: spacing.xs,
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+    lineHeight: 20,
   },
   metaRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
+    gap: spacing.md,
     flexWrap: "wrap",
   },
   dueDateContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: spacing.xs,
   },
   dueDate: {
+    ...typography.labelSmall,
     color: colors.textMuted,
-    fontSize: 12,
   },
   checklistIndicator: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: spacing.xs,
   },
   checklistText: {
+    ...typography.labelSmall,
     color: colors.textMuted,
-    fontSize: 12,
   },
   starsContainer: {
     flexDirection: "row",
     alignItems: "center",
+    gap: spacing.xxs,
   },
   star: {
-    marginRight: 2,
+    opacity: 0.9,
   },
 });
 

@@ -2,12 +2,12 @@ import { ICreateUserProfileInput, IUserProfile } from "@domain/models/profile";
 import { profileRepository } from "../repositories/profileRepository";
 
 export const profileService = {
-  async getOrCreate(payload?: ICreateUserProfileInput): Promise<IUserProfile> {
+  async getOrCreate(payload: ICreateUserProfileInput): Promise<IUserProfile> {
     try {
       return await profileRepository.get();
     } catch (err: any) {
       if (err?.response?.status === 404) {
-        return profileRepository.create(payload ?? {});
+        return profileRepository.create(payload);
       }
       throw err;
     }

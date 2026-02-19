@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
   },
   text: {
-    color: colors.textSoft,
+    color: colors.textSecondary,
     marginTop: spacing.sm,
     textAlign: "center",
   },

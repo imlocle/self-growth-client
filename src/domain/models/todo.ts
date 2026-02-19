@@ -6,8 +6,14 @@ export interface IBaseEntity {
   /** Unique identifier for the entity */
   id: string;
 
+  /** Household identifier (scope) */
+  householdId: string;
+
+  /** Subject identifier (scope) */
+  subjectId: string;
+
   /** ISO 8601 timestamp when the entity was created */
-  dataCreated: string;
+  dateCreated: string;
 
   /** ISO 8601 timestamp when the entity was last modified */
   dateModified: string;

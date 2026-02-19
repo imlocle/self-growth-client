@@ -32,8 +32,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthed, setIsAuthed] = useState(false);
 
-  const { setScope, clearScope } = useAppScope();
+  const { setUserProfile, clearScope } = useAppScope();
 
+  /**
+   * Fetches the user's profile from the API and stores it in app scope.
+   *
+   * Only touches `userProfile` — never overwrites `activeHouseholdId` or
+   * `activeSubjectId`, because those are managed independently via
+   * SecureStore hydration (cold start) and the onboarding flow (first time).
+   *
+   * If the profile doesn't exist yet (404), that's fine — the user will
+   * land in the onboarding flow where they can create one.
+   */
+  const bootstrapScope = async () => {
+    try {
+      const profile: IUserProfile = await profileService.get();
+      await setUserProfile(profile);
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        // No profile yet — user will go through onboarding
+        return;
+      }
+      throw error;
+    }
+  };
+
+  /**
+   * Runs once on app start.
+   *
+   * Checks SecureStore for a saved access token. If one exists, the user
+   * is still authenticated — we set `isAuthed` and fetch their profile
+   * from the API so the navigation tree can decide where to send them
+   * (MainTabs vs OnboardingStack).
+   *
+   * `activeHouseholdId` and `activeSubjectId` are already restored by
+   * `AppScopeProvider.hydrateScope()` which runs on its own mount, so
+   * we don't need to touch those here.
+   */
   useEffect(() => {
     (async () => {
       // DEV ONLY: uncomment to force logged out
@@ -41,38 +76,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // await clearScope();
 
       const token = await getAccessToken();
-      setIsAuthed(!!token);
+
+      if (token) {
+        setIsAuthed(true);
+
+        // Fetch profile so OnboardingStack knows whether to skip ProfileSetup
+        try {
+          await bootstrapScope();
+        } catch (error) {
+          // Non-fatal — user will see onboarding if profile is missing
+        }
+      }
+
       setIsLoading(false);
     })();
-  }, [clearScope]);
-
-  const bootstrapScope = async (fallbackProfileInput?: {
-    firstName?: string;
-    lastName?: string;
-  }) => {
-    // getOrCreate handles 404 and creates profile if missing
-    const profile: IUserProfile = await profileService.getOrCreate({
-      firstName: fallbackProfileInput?.firstName,
-      lastName: fallbackProfileInput?.lastName,
-    });
-
-    await setScope({
-      userProfile: profile,
-      activeHouseholdId: profile.defaultHouseholdId ?? null,
-      activeSubjectId: profile.defaultSubjectId ?? null,
-    });
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const value = useMemo<AuthState>(
     () => ({
       isLoading,
       isAuthed,
 
+      /**
+       * Creates a new Cognito account. Does NOT authenticate the user —
+       * they must confirm their email first, then call `login()`.
+       */
       async signup(email, password, firstName, lastName) {
         await authApi.signup({ email, password, firstName, lastName });
-        // Signup does not set isAuthed. User must confirm then login.
       },
 
+      /**
+       * Authenticates with email + password, saves tokens, then fetches
+       * the user's profile (if it exists) so navigation can route correctly.
+       */
       async login(email, password) {
         const data = await authApi.login({ email, password });
 
@@ -82,10 +119,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           idToken: data.idToken,
         });
 
-        await bootstrapScope();
         setIsAuthed(true);
+
+        try {
+          await bootstrapScope();
+        } catch (error) {
+          // Non-fatal — user will see onboarding if profile is missing
+        }
       },
 
+      /**
+       * Confirms the signup code, then immediately logs in and bootstraps
+       * scope. Used right after the user enters their confirmation code.
+       */
       async confirmAndLogin(email, password, confirmationCode) {
         await authApi.confirmSignup({ email, confirmationCode });
 
@@ -97,19 +143,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           idToken: data.idToken,
         });
 
-        // If your profile create endpoint uses names, you can pass them here,
-        // but typically you won't have them on confirm screen.
-        await bootstrapScope();
         setIsAuthed(true);
+
+        try {
+          await bootstrapScope();
+        } catch (error) {
+          // Non-fatal — user will see onboarding if profile is missing
+        }
       },
 
+      /**
+       * Clears all tokens and scope, returning the user to the auth screens.
+       */
       async logout() {
         await clearTokens();
         await clearScope();
         setIsAuthed(false);
       },
     }),
-    [isLoading, isAuthed, clearScope, setScope]
+    [isLoading, isAuthed, clearScope, setUserProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: radius.md,
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: colors.surfaceElevated,
   },
   checklistAddText: {
     color: colors.text,
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
   },
   checklistText: {
     flex: 1,
-    color: colors.textSoft,
+    color: colors.textSecondary,
     fontSize: 14,
   },
   checklistRemoveButton: {
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   dateButton: {
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: colors.surfaceElevated,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: radius.md,
